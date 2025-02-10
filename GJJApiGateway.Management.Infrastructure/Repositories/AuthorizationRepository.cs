@@ -78,5 +78,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+
     }
 }

@@ -28,7 +28,10 @@ namespace GJJApiGateway.Management.Infrastructure
         /// 授权规则实体集，对应数据库中的 "Authorizations" 表。
         /// </summary>
         public DbSet<Authorization> Authorizations { get; set; }
-
+        public DbSet<ApiInfo> ApiInfos { get; set; }
+        public DbSet<ApiApplication> ApiApplications { get; set; }
+        public DbSet<ApiApplicationMapping> ApiApplicationMappings { get; set; }
+        
         /// <summary>
         /// 重写 OnModelCreating 方法，应用实体映射配置。
         /// </summary>
@@ -38,9 +41,10 @@ namespace GJJApiGateway.Management.Infrastructure
             // 应用授权规则实体的映射配置
             modelBuilder.ApplyConfiguration(new AuthorizationMapping());
 
-            // 应用其他实体的映射配置
-            // 例如：
-            // modelBuilder.ApplyConfiguration(new AnotherEntityMapping());
+            modelBuilder.ApplyConfiguration(new ApiInfoMapping());
+            modelBuilder.ApplyConfiguration(new ApiApplicationMap());
+            modelBuilder.ApplyConfiguration(new ApiApplicationMappingMap());
+
         }
     }
 }

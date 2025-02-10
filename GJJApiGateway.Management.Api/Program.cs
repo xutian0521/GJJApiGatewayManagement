@@ -4,19 +4,48 @@ using System.Text;
 using NSwag.Generation.Processors.Security;
 using GJJApiGateway.Management.Application.Mapping;
 using GJJApiGateway.Management.Application.Extensions;
+using GJJApiGateway.Management.Application.Services;
+using GJJApiGateway.Management.Infrastructure.Repositories;
+using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
+using GJJApiGateway.Management.Application.Interfaces;
+using GJJApiGateway.Management.Api.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region 配置 CORS
+
+// 添加 CORS 服务并定义一个策略，从配置文件中读取允许的来源
+builder.Services.AddCors(options => options.AddPolicy("AppCors", policy =>
+{
+    var hosts = builder.Configuration.GetValue<string>("AppHosts");
+    Console.WriteLine(hosts);
+    policy.WithOrigins(hosts.Split(','))
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+}));
+
+#endregion
 
 // 添加控制器服务到容器
 builder.Services.AddControllers();
 
 // 配置 AutoMapper，指定映射配置文件所在的程序集
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile));
+builder.Services.AddAutoMapper(typeof(ControllerMappingProfile));
+
+
 
 // 注册应用层模块，包括认证、限流和路径管理
 builder.Services.AddApplicationModule();
 builder.Services.AddInfrastructureModule(builder.Configuration);
 builder.Services.AddCommonModule();
+
+// 注册业务层数据库等
+builder.Services.AddScoped<ApiManageService>();
+builder.Services.AddScoped<IApiInfoRepository, ApiInfoRepository>();
+builder.Services.AddScoped<IAccountService, AccountMockService>();
+
 
 // 配置 JWT 认证
 builder.Services.AddAuthentication(options =>
@@ -56,7 +85,7 @@ builder.Services.AddOpenApiDocument(configure =>
 });
 
 var app = builder.Build();
-
+app.UseCors("AppCors"); // 配置 CORS 策略
 // 中间件配置
 if (app.Environment.IsDevelopment())
 {
