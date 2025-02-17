@@ -8,6 +8,7 @@ namespace GJJApiGateway.Management.Application.DTOs
 {
     public class A_ApiInfoDto
     {
+        public int Id { get; set; }
         /// <summary>
         /// API的中文名称。
         /// </summary>

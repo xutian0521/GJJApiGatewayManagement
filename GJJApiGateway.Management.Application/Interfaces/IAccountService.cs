@@ -9,7 +9,9 @@ namespace GJJApiGateway.Management.Application.Interfaces
 {
     public interface IAccountService
     {
-        ServiceResult<A_LoginResponseDto> UserLogin(string username);
-        ServiceResult<A_UserInfoDto> GetUserInfo(string token);
+        Task<ServiceResult<A_LoginResponseDto>> UserLoginAsync(string userName,
+                string password, string code, string codeKey);
+        ServiceResult<A_SysUserInfoDto> GetUserInfo(string token);
+        dynamic GetValidateCode();
     }
 }

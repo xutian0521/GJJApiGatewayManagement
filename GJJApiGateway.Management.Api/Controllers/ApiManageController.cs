@@ -63,16 +63,19 @@ namespace GJJApiGateway.Management.Api.Controllers
         /// </param>
         /// <returns>返回分页的 API 信息 ViewModel 列表和总记录数。</returns>
         [HttpGet("list")]
-        public async Task<s_ApiResult<Pager<ApiInfoViewModel>>> ApiList([FromQuery] C_ApiInfoQueryDto queryDto)
+        public async Task<s_ApiResult<Pager<ApiInfoViewModel>>> ApiList(
+            string? apiChineseName, string? description,
+            string? businessIdentifier, string? apiSource,
+            string? apiPath, int page =1, int limit = 20)
         {
             var result = await _apiService.ApiList(
-                queryDto.ApiChineseName,
-                queryDto.Description,
-                queryDto.BusinessIdentifier,
-                queryDto.ApiSource,
-                queryDto.ApiPath,
-                queryDto.Page,
-                queryDto.Limit);
+                apiChineseName,
+                description,
+                businessIdentifier,
+                apiSource,
+                apiPath,
+                page,
+                limit);
             // 将业务层的 Pager<ApiInfoDto> 转换为 Pager<ApiInfoViewModel>
             var viewModelPager = _mapper.Map<Pager<ApiInfoViewModel>>(result.Data);
             return new s_ApiResult<Pager<ApiInfoViewModel>>(result.Code, result.Message, viewModelPager);
@@ -96,7 +99,7 @@ namespace GJJApiGateway.Management.Api.Controllers
         /// <param name="apiId">要配置的 API 的 ID。</param>
         /// <param name="configuration">包含 API 配置信息的 DTO。</param>
         /// <returns>操作结果，包含成功或错误消息和更新后的 API ViewModel。</returns>
-        [HttpPut("Configure/{apiId}")]
+        [HttpPost("Configure/{apiId}")]
         public async Task<s_ApiResult<ApiInfoViewModel>> ConfigureApi(int apiId, [FromBody] C_ApiConfigurationDto configurationDto)
         {
             var a_configurationDto = _mapper.Map<A_ApiConfigurationDto>(configurationDto);

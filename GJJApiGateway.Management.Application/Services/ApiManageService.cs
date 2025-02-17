@@ -40,11 +40,11 @@ namespace GJJApiGateway.Management.Application.Services
         /// 获取分页的API信息列表（业务层分页DTO PageResult<ApiInfoDto>）
         /// </summary>
         public async Task<ServiceResult<PageResult<A_ApiInfoDto>>> ApiList(
-            string apiChineseName,
-            string description,
-            string businessIdentifier,
-            string apiSource,
-            string apiPath,
+            string? apiChineseName,
+            string? description,
+            string? businessIdentifier,
+            string? apiSource,
+            string? apiPath,
             int pageIndex,
             int pageSize)
         {
@@ -189,7 +189,7 @@ namespace GJJApiGateway.Management.Application.Services
                 var exp = (DateTime.UtcNow.AddDays(days ?? 36500) - new DateTime(1970, 1, 1)).TotalSeconds;
                 foreach (var app in appsExist)
                 {
-                    var srtJson = JwtHelper.Encrypt(app.Id, app.ApplicationName, string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
+                    var srtJson = JwtHelper.EncryptApi(app.Id, app.ApplicationName, string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
                     app.JwtToken = srtJson;
                 }
                 await _apiInfoRepository.InsertApiApplicationMappingsAsync(mappings);

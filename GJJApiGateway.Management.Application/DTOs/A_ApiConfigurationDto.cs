@@ -8,6 +8,7 @@ namespace GJJApiGateway.Management.Application.DTOs
 {
     public class A_ApiConfigurationDto
     {
+        public int Id { get; set; }
         public string? ApiPath { get; set; }
         public string? Body { get; set; }
         public string? Parameter { get; set; }

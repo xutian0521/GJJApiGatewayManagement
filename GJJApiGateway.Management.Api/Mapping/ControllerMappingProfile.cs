@@ -25,7 +25,7 @@ namespace GJJApiGateway.Management.Api.Mappings
             CreateMap<A_ApiInfoDto, C_ApiInfoDto>().ReverseMap();
             CreateMap<A_LoginRequestDto, C_LoginRequestDto>().ReverseMap();
             CreateMap<A_LoginResponseDto, LoginResponseVM>().ReverseMap();
-            CreateMap<A_UserInfoDto, UserInfoVM>().ReverseMap();
+            CreateMap<A_SysUserInfoDto, SysUserInfoVM>().ReverseMap();
 
             // 映射业务层分页 DTO PageResult<T> 到控制器层 Pager<T>
             // 由于业务层返回 PageResult<A_ApiInfoDto>，而前端需要 Pager<ApiInfoViewModel>，

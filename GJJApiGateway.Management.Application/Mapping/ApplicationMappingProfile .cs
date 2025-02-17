@@ -39,7 +39,8 @@ namespace GJJApiGateway.Management.Application.Mapping
 
             // 增加业务层 DTO 与 Common 层 DTO 的映射
             CreateMap<ApiInfo, CommonApiInfoDto>().ReverseMap();
-
+            CreateMap<SYS_USERINFO, A_SysUserInfoDto>().ReverseMap();
+            
         }
     }
 }
