@@ -48,24 +48,24 @@ namespace GJJApiGateway.Management.Application.Services
                 return ServiceResult<A_LoginResponseDto>.Fail("密码不正确");
             }
             user.LastLoginTime = DateTime.Now;
-            var UserDb= _mapper.Map<SYS_USERINFO>(user);
+            var UserDb= _mapper.Map<SysUserInfo>(user);
             int updateRow = await _sysUserInfoRepository.UpdateAsync(UserDb);
             string userJson = System.Text.Json.JsonSerializer.Serialize(user);
 
             const int expMin = 60 * 24 * 30;
             //const int expMin = 1;
             var exp = (DateTime.UtcNow.AddMinutes(expMin) - new DateTime(1970, 1, 1)).TotalSeconds;
-            var srtJson = JwtHelper.Encrypt(user.Id.ToString(), user.Name, user.RealName, exp);
+            var srtJson = JwtHelper.Encrypt(user.Id.ToString(), user.Name, user.RoleId, exp);
 
 
             A_LoginResponseDto dto = new A_LoginResponseDto()
             {
-                ACCESS_TOKEN = srtJson,
-                EXPIRES_IN = expMin,
-                USER_ID = user.Id.ToString(),
-                USER_NAME = user.Name,
-                ROLE_ID = user.RoleId,
-                REAL_NAME = user.RealName,
+                access_token = srtJson,
+                expires_in = expMin,
+                user_id = user.Id.ToString(),
+                user_name = user.Name,
+                role_id = user.RoleId,
+                real_name = user.RealName,
 
             };
             return ServiceResult<A_LoginResponseDto>.Success(dto);

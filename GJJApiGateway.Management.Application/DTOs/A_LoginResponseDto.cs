@@ -11,27 +11,32 @@ namespace GJJApiGateway.Management.Application.DTOs
         /// <summary>
         /// 角色ID
         /// </summary>
-        public string ROLE_ID { get; set; }
+        public string? role_id { get; set; }
+
         /// <summary>
         /// 用户名
         /// </summary>
-        public string USER_NAME { get; set; }
+        public string? user_name { get; set; }
+
         /// <summary>
         /// 用户id
         /// </summary>
-        public string USER_ID { get; set; }
+        public string? user_id { get; set; }
+
         /// <summary>
         /// jwt token
         /// </summary>
-        public string ACCESS_TOKEN { get; set; }
+        public string? access_token { get; set; }
+
         /// <summary>
         /// jwt过期时间
         /// </summary>
-        public int EXPIRES_IN { get; set; }
+        public int expires_in { get; set; }
+
         /// <summary>
         /// 真实姓名
         /// </summary>
-        public string REAL_NAME { get; set; }
-
+        public string? real_name { get; set; }
     }
+
 }

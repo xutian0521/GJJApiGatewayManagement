@@ -18,6 +18,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using GJJApiGateway.Management.Api.Filter;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,10 @@ builder.Services.AddScoped<ApiManageService>();
 builder.Services.AddScoped<IApiInfoRepository, ApiInfoRepository>();
 builder.Services.AddScoped<IAccountService, AccountMockService>();
 builder.Services.AddScoped<ISysUserInfoRepository, SysUserInfoRepository>();
+builder.Services.AddScoped<IRuleService, RuleService>();
+builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+
+
 
 // 配置 JWT 认证
 builder.Services.AddAuthentication(options =>
@@ -257,6 +262,7 @@ builder.Services.AddLogging(logging => logging.AddOpenTelemetry(openTelemetryLog
 
 #region 配置 Consul 服务注册
 
+#if !DEBUG
 var consulClient = new ConsulClient(config =>
 {
     config.Address = new Uri("http://localhost:8500");
@@ -284,7 +290,7 @@ var registration = new AgentServiceRegistration
 
 // 注册到 Consul
 await consulClient.Agent.ServiceRegister(registration);
-
+# endif
 #endregion
 
 #region 配置 Kestrel 服务器端口
@@ -295,6 +301,15 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 });
 
 #endregion
+
+// 配置过滤器
+builder.Services.AddControllers(options =>
+{
+    // 添加用户授权过滤器
+    options.Filters.Add<UserAuthorizeFilter>();
+    // 添加 AES 加密操作过滤器
+    //options.Filters.Add<AESEncryptionActionFilter>();
+});
 
 var app = builder.Build();
 app.UseCors("AppCors"); // 配置 CORS 策略

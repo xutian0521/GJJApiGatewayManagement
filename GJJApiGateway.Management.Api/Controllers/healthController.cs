@@ -9,7 +9,9 @@ namespace GJJApiGateway.Management.Api.Controllers
         [HttpGet]
         public IActionResult Get()
         {
+            Console.WriteLine("【健康】");
             return Ok();
+            
         }
     }
 }

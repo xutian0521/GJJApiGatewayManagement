@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace GJJApiGateway.Management.Infrastructure.Mappings
 {
-    public class SYS_USERINFOMapping : IEntityTypeConfiguration<SYS_USERINFO>
+    public class SysRoleMenuMapping : IEntityTypeConfiguration<SysRoleMenu>
     {
-        public void Configure(EntityTypeBuilder<SYS_USERINFO> builder)
+        public void Configure(EntityTypeBuilder<SysRoleMenu> builder)
         {
-            builder.ToTable("SYS_USERINFO");
+            builder.ToTable("SysRoleMenu");
             builder.HasKey(a => a.ID);
         }
     }

@@ -9,7 +9,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
 {
     public interface ISysUserInfoRepository
     {
-        Task<SYS_USERINFO> GetUserByNameAsync(int? id, string userName);
-        Task<int> UpdateAsync(SYS_USERINFO sysUserInfo);
+        Task<SysUserInfo> GetUserByNameAsync(int? id, string userName);
+        Task<int> UpdateAsync(SysUserInfo sysUserInfo);
     }
 }

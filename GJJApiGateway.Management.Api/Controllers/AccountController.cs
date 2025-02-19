@@ -31,7 +31,7 @@ namespace GJJApiGateway.Management.Api.Controllers
 
             var result = await _accountService.UserLoginAsync(request.Username,request.Password,request.code, request.codeKey);
             var viewModel = _mapper.Map<LoginResponseVM>(result.Data);
-            _logger.LogInformation($"用户开始登录-结束【2】：REAL_NAME {viewModel.REAL_NAME} end.");
+            _logger.LogInformation($"用户开始登录-结束【2】：REAL_NAME {viewModel.real_name} end.");
             return new s_ApiResult<LoginResponseVM>(result.Code, result.Message, viewModel);
         }
 

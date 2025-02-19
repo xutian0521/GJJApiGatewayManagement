@@ -21,16 +21,16 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<SYS_USERINFO> GetUserByNameAsync(int? id, string userName)
+        public async Task<SysUserInfo> GetUserByNameAsync(int? id, string userName)
         {
-            return await _context.SYS_USERINFOs.AsNoTracking()
+            return await _context.SysUserInfos.AsNoTracking()
                 .Where(a => (id != null && a.ID == id) || (!string.IsNullOrEmpty(userName) && a.NAME == userName))
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<int> UpdateAsync(SYS_USERINFO sysUserInfo)
+        public async Task<int> UpdateAsync(SysUserInfo sysUserInfo)
         {
-            _context.SYS_USERINFOs.Update(sysUserInfo);
+            _context.SysUserInfos.Update(sysUserInfo);
             return await _context.SaveChangesAsync();
         }
     }

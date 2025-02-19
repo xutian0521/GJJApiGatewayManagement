@@ -6,53 +6,50 @@ using System.Threading.Tasks;
 
 namespace GJJApiGateway.Management.Model.Entities
 {
-    public class SYS_USERINFO
+    /// <summary>
+    /// 用户信息表
+    /// </summary>
+    public class SysMenu
     {
         /// <summary>
-        /// 用户ID
+        /// Id
         /// </summary>
         public int ID { get; set; }
-
         /// <summary>
-        /// 用户名
+        /// 菜单名称
         /// </summary>
         public string? NAME { get; set; }
-
         /// <summary>
-        /// 真实姓名
+        /// 别名
         /// </summary>
-        public string? REALNAME { get; set; }
-
+        public string? ALIAS { get; set; }
         /// <summary>
-        /// 密码
+        /// 父级节点id
         /// </summary>
-        public string? PASSWORD { get; set; }
+        public int PID { get; set; }
         /// <summary>
-        /// 盐
+        /// 路由
         /// </summary>
-        public string? SALT { get; set; }
-
+        public string? PATH { get; set; }
         /// <summary>
-        /// 权限ID
+        /// 菜单标识
         /// </summary>
-        public string? ROLEID { get; set; }
+        public string? ICON { get; set; }
         /// <summary>
-        /// 最后登录ip
+        /// 排序
         /// </summary>
-        public string? LASTLOGINIP { get; set; }
+        public int SORTID { get; set; }
         /// <summary>
-        /// 最后登录时间
+        /// 是否可用
         /// </summary>
-        public DateTime? LASTLOGINTIME { get; set; }
-
-        /// <summary>
-        /// 创建时间
-        /// </summary>
-        public DateTime? CREATETIME { get; set; }
-
+        public int ISENABLE { get; set; }
         /// <summary>
         /// 备注
         /// </summary>
         public string? REMARK { get; set; }
+        /// <summary>
+        /// 城市网点编号
+        /// </summary>
+        public string? CITYCENTNO { get; set; }
     }
 }
