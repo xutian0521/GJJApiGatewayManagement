@@ -121,6 +121,6 @@
         /// <summary>
         /// 标签
         /// </summary>
-        public string Tags { get; set; }
+        public string? Tags { get; set; }
     }
 }

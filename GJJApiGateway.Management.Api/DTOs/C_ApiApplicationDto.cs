@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GJJApiGateway.Management.Application.DTOs
+﻿namespace GJJApiGateway.Management.Api.DTOs
 {
-    public class A_ApiApplicationDto
+    public class C_ApiApplicationDto
     {
         /// <summary>
         /// API应用程序的唯一标识符。

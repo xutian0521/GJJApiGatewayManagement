@@ -7,6 +7,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
     public interface IApiInfoRepository
     {
         Task<IEnumerable<ApiInfo>> GetApiInfoAsync(string apiChineseName, string description, string businessIdentifier, string apiSource, string apiPath, int pageIndex, int pageSize);
+        Task<IEnumerable<ApiInfo>> GetApiInfoListAsync(IEnumerable<int> apiIds);
         Task<int> GetApiInfoCountAsync(string apiChineseName, string description, string businessIdentifier, string apiSource, string apiPath);
 
         Task<bool> DeleteApiInfoAsync(int apiId);
@@ -17,10 +18,10 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
         Task<IEnumerable<ApiApplication>> GetApplicationsByApiIdAsync(int apiId);
         Task<IEnumerable<ApiInfo>> GetApisByApplicationIdAsync(int applicationId);
         Task InsertApiApplicationMappingsAsync(IEnumerable<ApiApplicationMapping> mappings);
-        Task UpdateApplicationsAsync(IEnumerable<ApiApplication> applications);
+
         Task<int> CreateApiInfoAsync(ApiInfo apiInfo);
         Task<bool> UpdateApiInfoAsync(ApiInfo apiInfo);
-        Task<List<ApiInfo>> GetAllApiInfosAsync();
+        Task<IEnumerable<ApiInfo>> GetAllApiInfosAsync();
         Task<int> BulkInsertApiInfosAsync(IEnumerable<ApiInfo> apiInfos);
 
     }

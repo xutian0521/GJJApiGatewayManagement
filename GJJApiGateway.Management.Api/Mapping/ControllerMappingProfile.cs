@@ -14,26 +14,27 @@ namespace GJJApiGateway.Management.Api.Mappings
         public ControllerMappingProfile()
         {
             // 将业务层 A_ApiInfoDto 映射为 API 层 ApiInfoViewModel
-            CreateMap<A_ApiInfoDto, ApiInfoViewModel>().ReverseMap();
+            CreateMap<A_ApiInfoDto, ApiInfoVM>().ReverseMap();
 
             // 将业务层 A_ApiApplicationDto 映射为 API 层 ApiApplicationViewModel
-            CreateMap<A_ApiApplicationDto, ApiApplicationViewModel>().ReverseMap();
+            CreateMap<A_ApiApplicationDto, ApiApplicationVM>().ReverseMap();
 
             // 其它 DTO 映射
             CreateMap<A_ApiConfigurationDto, C_ApiConfigurationDto>().ReverseMap();
             CreateMap<A_ApiAuthorizationRequestDto, C_ApiAuthorizationRequestDto>().ReverseMap();
             CreateMap<A_ApiInfoDto, C_ApiInfoDto>().ReverseMap();
+            CreateMap<A_ApiApplicationDto, C_ApiApplicationDto>().ReverseMap();
             CreateMap<A_LoginRequestDto, C_LoginRequestDto>().ReverseMap();
             CreateMap<A_LoginResponseDto, LoginResponseVM>().ReverseMap();
             CreateMap<A_SysUserInfoDto, SysUserInfoVM>().ReverseMap();
             CreateMap<A_SysMenuDto, C_SysMenuDto>().ReverseMap();
             CreateMap<A_SysMenuDto, SysMenuVM>().ReverseMap();
-
-            // 映射业务层分页 DTO PageResult<T> 到控制器层 Pager<T>
-            // 由于业务层返回 PageResult<A_ApiInfoDto>，而前端需要 Pager<ApiInfoViewModel>，
-            // 此处显式注册映射，并使用带两个泛型参数的转换器
-            CreateMap<PageResult<A_ApiInfoDto>, Pager<ApiInfoViewModel>>()
-                .ConvertUsing<PageResultToPagerConverter<A_ApiInfoDto, ApiInfoViewModel>>();
+            CreateMap<A_ApiApplicationDto, ApiApplicationVM>().ReverseMap();
+            
+            CreateMap<PageResult<A_ApiApplicationDto>, Pager<ApiApplicationVM>>()
+            .ConvertUsing<PageResultToPagerConverter<A_ApiApplicationDto, ApiApplicationVM>>();
+            CreateMap<PageResult<A_ApiInfoDto>, Pager<ApiInfoVM>>()
+                .ConvertUsing<PageResultToPagerConverter<A_ApiInfoDto, ApiInfoVM>>();
         }
     }
 
@@ -45,10 +46,10 @@ namespace GJJApiGateway.Management.Api.Mappings
     {
         public Pager<TDestination> Convert(PageResult<TSource> source, Pager<TDestination> destination, ResolutionContext context)
         {
-            var list = context.Mapper.Map<List<TDestination>>(source.Items);
+            var list = context.Mapper.Map<IEnumerable<TDestination>>(source.Items);
             return new Pager<TDestination>
             {
-                List = list,
+                List = list.ToList(),
                 Total = source.Total
             };
         }

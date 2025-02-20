@@ -19,6 +19,8 @@ using OpenTelemetry.Trace;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using GJJApiGateway.Management.Api.Filter;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +71,10 @@ builder.Services.AddInfrastructureModule(builder.Configuration);
 builder.Services.AddCommonModule();
 
 // 注册业务层数据库等
+builder.Services.AddScoped<IApiApplicationService, ApiApplicationService>();
+builder.Services.AddScoped<IApiApplicationRepository, ApiApplicationRepository>();
+builder.Services.AddScoped<IApiApplicationMappingRepository, ApiApplicationMappingRepository>();
+
 builder.Services.AddScoped<ApiManageService>();
 builder.Services.AddScoped<IApiInfoRepository, ApiInfoRepository>();
 builder.Services.AddScoped<IAccountService, AccountMockService>();
@@ -309,7 +315,17 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<UserAuthorizeFilter>();
     // 添加 AES 加密操作过滤器
     //options.Filters.Add<AESEncryptionActionFilter>();
-});
+}).AddNewtonsoftJson(options =>
+{
+
+
+    // 修改时间的序列化方式
+    options.SerializerSettings.Converters.Add(new FixedDateTimeConverter());
+    // 忽略循环引用
+    // options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+    // 我们将 NullValueHandling 设置为 Ignore，表示在序列化时忽略 null 值。如果您希望将 null 值序列化为 JSON 字符串 "null"，则可以将其设置为 Include。
+    options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+}); ;
 
 var app = builder.Build();
 app.UseCors("AppCors"); // 配置 CORS 策略

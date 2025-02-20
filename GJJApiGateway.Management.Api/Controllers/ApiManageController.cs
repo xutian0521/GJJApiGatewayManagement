@@ -33,22 +33,6 @@ namespace GJJApiGateway.Management.Api.Controllers
         }
 
         /// <summary>
-        /// 创建 API。
-        /// 接收前端传来的 API 信息 DTO，调用业务层方法创建 API，并返回创建结果。
-        /// </summary>
-        /// <param name="apiInfoDto">API 信息数据传输对象（DTO）。</param>
-        /// <returns>操作结果，如果成功，返回创建的 API ViewModel。</returns>
-        [HttpPost]
-        public async Task<s_ApiResult<ApiInfoViewModel>> CreateApi([FromBody] C_ApiInfoDto apiInfoDto)
-        {
-            var a_apiInfoDto = _mapper.Map<A_ApiInfoDto>(apiInfoDto);
-            var result = await _apiService.CreateApi(a_apiInfoDto);
-            // 使用 _mapper 将业务层返回的 ApiInfoDto 转换为前端 ViewModel（ApiInfoViewModel）
-            var viewModel = _mapper.Map<ApiInfoViewModel>(result.Data);
-            return new s_ApiResult<ApiInfoViewModel>(result.Code, result.Message, viewModel);
-        }
-
-        /// <summary>
         /// API 列表
         /// </summary>
         /// <param name="queryDto">
@@ -63,7 +47,7 @@ namespace GJJApiGateway.Management.Api.Controllers
         /// </param>
         /// <returns>返回分页的 API 信息 ViewModel 列表和总记录数。</returns>
         [HttpGet("list")]
-        public async Task<s_ApiResult<Pager<ApiInfoViewModel>>> ApiList(
+        public async Task<s_ApiResult<Pager<ApiInfoVM>>> ApiList(
             string? apiChineseName, string? description,
             string? businessIdentifier, string? apiSource,
             string? apiPath, int page =1, int limit = 20)
@@ -77,8 +61,8 @@ namespace GJJApiGateway.Management.Api.Controllers
                 page,
                 limit);
             // 将业务层的 Pager<ApiInfoDto> 转换为 Pager<ApiInfoViewModel>
-            var viewModelPager = _mapper.Map<Pager<ApiInfoViewModel>>(result.Data);
-            return new s_ApiResult<Pager<ApiInfoViewModel>>(result.Code, result.Message, viewModelPager);
+            var viewModelPager = _mapper.Map<Pager<ApiInfoVM>>(result.Data);
+            return new s_ApiResult<Pager<ApiInfoVM>>(result.Code, result.Message, viewModelPager);
         }
 
         /// <summary>
@@ -100,12 +84,12 @@ namespace GJJApiGateway.Management.Api.Controllers
         /// <param name="configuration">包含 API 配置信息的 DTO。</param>
         /// <returns>操作结果，包含成功或错误消息和更新后的 API ViewModel。</returns>
         [HttpPost("Configure/{apiId}")]
-        public async Task<s_ApiResult<ApiInfoViewModel>> ConfigureApi(int apiId, [FromBody] C_ApiConfigurationDto configurationDto)
+        public async Task<s_ApiResult<ApiInfoVM>> ConfigureApi(int apiId, [FromBody] C_ApiConfigurationDto configurationDto)
         {
             var a_configurationDto = _mapper.Map<A_ApiConfigurationDto>(configurationDto);
             var result = await _apiService.ConfigureApi(apiId, a_configurationDto);
-            var viewModel = _mapper.Map<ApiInfoViewModel>(result.Data);
-            return new s_ApiResult<ApiInfoViewModel>(result.Code, result.Message, viewModel);
+            var viewModel = _mapper.Map<ApiInfoVM>(result.Data);
+            return new s_ApiResult<ApiInfoVM>(result.Code, result.Message, viewModel);
         }
 
         /// <summary>
@@ -114,11 +98,11 @@ namespace GJJApiGateway.Management.Api.Controllers
         /// <param name="apiId">API 的唯一标识符。</param>
         /// <returns>包含 API 信息 DTO 转换后的 ViewModel 的操作结果。</returns>
         [HttpGet("{apiId}")]
-        public async Task<s_ApiResult<ApiInfoViewModel>> GetApiById(int apiId)
+        public async Task<s_ApiResult<ApiInfoVM>> GetApiById(int apiId)
         {
             var result = await _apiService.GetApiByIdAsync(apiId);
-            var viewModel = _mapper.Map<ApiInfoViewModel>(result.Data);
-            return new s_ApiResult<ApiInfoViewModel>(result.Code, result.Message, viewModel);
+            var viewModel = _mapper.Map<ApiInfoVM>(result.Data);
+            return new s_ApiResult<ApiInfoVM>(result.Code, result.Message, viewModel);
         }
 
         /// <summary>
@@ -170,11 +154,11 @@ namespace GJJApiGateway.Management.Api.Controllers
         /// <param name="apiId">要查询的 API 的 ID。</param>
         /// <returns>操作结果，包含已授权的应用程序 ViewModel 列表。</returns>
         [HttpGet("AuthorizedApplications/{apiId}")]
-        public async Task<s_ApiResult<IEnumerable<ApiApplicationViewModel>>> GetAuthorizedApplications(int apiId)
+        public async Task<s_ApiResult<IEnumerable<ApiApplicationVM>>> GetAuthorizedApplications(int apiId)
         {
             var result = await _apiService.GetAuthorizedApplications(apiId);
-            var viewModels = _mapper.Map<IEnumerable<ApiApplicationViewModel>>(result.Data);
-            return new s_ApiResult<IEnumerable<ApiApplicationViewModel>>(result.Code, result.Message, viewModels);
+            var viewModels = _mapper.Map<IEnumerable<ApiApplicationVM>>(result.Data);
+            return new s_ApiResult<IEnumerable<ApiApplicationVM>>(result.Code, result.Message, viewModels);
         }
 
         /// <summary>
@@ -183,11 +167,11 @@ namespace GJJApiGateway.Management.Api.Controllers
         /// <param name="applicationId">要查询的应用程序的 ID。</param>
         /// <returns>操作结果，包含已授权的 API ViewModel 列表。</returns>
         [HttpGet("AuthorizedApis/{applicationId}")]
-        public async Task<s_ApiResult<IEnumerable<ApiInfoViewModel>>> GetAuthorizedApis(int applicationId)
+        public async Task<s_ApiResult<IEnumerable<ApiInfoVM>>> GetAuthorizedApis(int applicationId)
         {
             var result = await _apiService.GetAuthorizedApis(applicationId);
-            var viewModels = _mapper.Map<IEnumerable<ApiInfoViewModel>>(result.Data);
-            return new s_ApiResult<IEnumerable<ApiInfoViewModel>>(result.Code, result.Message, viewModels);
+            var viewModels = _mapper.Map<IEnumerable<ApiInfoVM>>(result.Data);
+            return new s_ApiResult<IEnumerable<ApiInfoVM>>(result.Code, result.Message, viewModels);
         }
     }
 }

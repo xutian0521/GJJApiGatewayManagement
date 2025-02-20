@@ -1,6 +1,6 @@
 ﻿namespace GJJApiGateway.Management.Api.ViewModel
 {
-    public class ApiInfoViewModel
+    public class ApiInfoVM
     {
         public int Id { get; set; }
         /// <summary>

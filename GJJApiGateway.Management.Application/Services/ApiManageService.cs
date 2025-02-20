@@ -10,10 +10,12 @@ using AutoMapper;
 using GJJApiGateway.Management.Application.DTOs;
 using GJJApiGateway.Management.Common.DTOs;
 using GJJApiGateway.Management.Common.Utilities;
+using GJJApiGateway.Management.Infrastructure.Repositories;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Model;
 using GJJApiGateway.Management.Model.Entities;
 using GJJApiGateway.Management.Model.ViewModels;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
 using Newtonsoft.Json;
 
@@ -25,14 +27,22 @@ namespace GJJApiGateway.Management.Application.Services
     public class ApiManageService
     {
         private readonly IApiInfoRepository _apiInfoRepository;
+        private readonly IApiApplicationRepository _apiApplicationRepository;
+        private readonly IApiApplicationMappingRepository  _apiApplicationMappingRepository;
         private readonly IMapper _mapper;
 
         /// <summary>
         /// 构造函数，注入仓储接口和 AutoMapper 映射器
         /// </summary>
-        public ApiManageService(IApiInfoRepository apiInfoRepository, IMapper mapper)
+        public ApiManageService(
+            IApiInfoRepository apiInfoRepository,
+            IApiApplicationRepository apiApplicationRepository,
+            IApiApplicationMappingRepository apiApplicationMappingRepository,
+            IMapper mapper)
         {
             _apiInfoRepository = apiInfoRepository;
+            _apiApplicationRepository = apiApplicationRepository;
+            _apiApplicationMappingRepository = apiApplicationMappingRepository;
             _mapper = mapper;
         }
 
@@ -48,37 +58,33 @@ namespace GJJApiGateway.Management.Application.Services
             int pageIndex,
             int pageSize)
         {
-            try
-            {
-                int total = await _apiInfoRepository.GetApiInfoCountAsync(apiChineseName, description, businessIdentifier, apiSource, apiPath);
-                var apiInfos = await _apiInfoRepository.GetApiInfoListAsync(apiChineseName, description, businessIdentifier, apiSource, apiPath, pageIndex, pageSize);
-                var apiInfoDtos = _mapper.Map<List<A_ApiInfoDto>>(apiInfos);
+            int total = await _apiInfoRepository.GetApiInfoCountAsync(apiChineseName, description, businessIdentifier, apiSource, apiPath);
+            var apiInfos = await _apiInfoRepository.GetApiInfoListAsync(apiChineseName, description, businessIdentifier, apiSource, apiPath, pageIndex, pageSize);
+            var apiInfoDtos = _mapper.Map<List<A_ApiInfoDto>>(apiInfos);
 
-                var pageResult = new PageResult<A_ApiInfoDto>
-                {
-                    Items = apiInfoDtos,
-                    Total = total
-                };
-
-                return ServiceResult<PageResult<A_ApiInfoDto>>.Success(pageResult, "查询成功");
-            }
-            catch (Exception ex)
+            var pageResult = new PageResult<A_ApiInfoDto>
             {
-                return ServiceResult<PageResult<A_ApiInfoDto>>.Fail($"获取API列表时发生异常：{ex.Message}");
-            }
+                Items = apiInfoDtos,
+                Total = total
+            };
+
+            return ServiceResult<PageResult<A_ApiInfoDto>>.Success(pageResult, "查询成功");
         }
 
 
+
         /// <summary>
-        /// 创建新的API信息
+        /// 根据给定的配置更新指定的API信息
         /// </summary>
-        public async Task<ServiceResult<A_ApiInfoDto>> CreateApi(A_ApiInfoDto apiInfoDto)
+        public async Task<ServiceResult<A_ApiInfoDto>> ConfigureApi(int apiId, A_ApiConfigurationDto configuration)
         {
-            try
+            var apiInfo = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
+            if (apiInfo == null)
             {
-                var apiInfo = _mapper.Map<ApiInfo>(apiInfoDto);
-                apiInfo.CreateTime = DateTime.Now;
-                int id = await _apiInfoRepository.CreateApiInfoAsync(apiInfo);
+
+                var poco = _mapper.Map<ApiInfo>(configuration);
+                poco.CreateTime = DateTime.Now;
+                int id = await _apiInfoRepository.CreateApiInfoAsync(poco);
                 if (id > 0)
                 {
                     var createdApi = await _apiInfoRepository.GetApiInfoByIdAsync(id);
@@ -90,40 +96,17 @@ namespace GJJApiGateway.Management.Application.Services
                     return ServiceResult<A_ApiInfoDto>.Fail("API创建失败，未能插入数据。");
                 }
             }
-            catch (Exception ex)
+            _mapper.Map(configuration, apiInfo);
+            bool success = await _apiInfoRepository.UpdateApiInfoAsync(apiInfo);
+            if (success)
             {
-                return ServiceResult<A_ApiInfoDto>.Fail($"创建API时发生异常：{ex.Message}");
+                var updatedApi = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
+                var updatedApiDto = _mapper.Map<A_ApiInfoDto>(updatedApi);
+                return ServiceResult<A_ApiInfoDto>.Success(updatedApiDto, "API配置更新成功。");
             }
-        }
-
-        /// <summary>
-        /// 根据给定的配置更新指定的API信息
-        /// </summary>
-        public async Task<ServiceResult<A_ApiInfoDto>> ConfigureApi(int apiId, A_ApiConfigurationDto configuration)
-        {
-            try
+            else
             {
-                var apiInfo = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
-                if (apiInfo == null)
-                {
-                    return ServiceResult<A_ApiInfoDto>.Fail("未找到指定的API信息。");
-                }
-                _mapper.Map(configuration, apiInfo);
-                bool success = await _apiInfoRepository.UpdateApiInfoAsync(apiInfo);
-                if (success)
-                {
-                    var updatedApi = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
-                    var updatedApiDto = _mapper.Map<A_ApiInfoDto>(updatedApi);
-                    return ServiceResult<A_ApiInfoDto>.Success(updatedApiDto, "API配置更新成功。");
-                }
-                else
-                {
-                    return ServiceResult<A_ApiInfoDto>.Fail("API配置更新失败。");
-                }
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<A_ApiInfoDto>.Fail($"更新API配置时发生异常：{ex.Message}");
+                return ServiceResult<A_ApiInfoDto>.Fail("API配置更新失败。");
             }
         }
 
@@ -132,20 +115,13 @@ namespace GJJApiGateway.Management.Application.Services
         /// </summary>
         public async Task<ServiceResult<A_ApiInfoDto>> GetApiByIdAsync(int apiId)
         {
-            try
+            var apiInfo = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
+            if (apiInfo == null)
             {
-                var apiInfo = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
-                if (apiInfo == null)
-                {
-                    return ServiceResult<A_ApiInfoDto>.Fail("未找到指定的API信息。");
-                }
-                var apiInfoDto = _mapper.Map<A_ApiInfoDto>(apiInfo);
-                return ServiceResult<A_ApiInfoDto>.Success(apiInfoDto, "查询成功");
+                return ServiceResult<A_ApiInfoDto>.Fail("未找到指定的API信息。");
             }
-            catch (Exception ex)
-            {
-                return ServiceResult<A_ApiInfoDto>.Fail($"获取API信息时发生异常：{ex.Message}");
-            }
+            var apiInfoDto = _mapper.Map<A_ApiInfoDto>(apiInfo);
+            return ServiceResult<A_ApiInfoDto>.Success(apiInfoDto, "查询成功");
         }
 
         /// <summary>
@@ -153,27 +129,33 @@ namespace GJJApiGateway.Management.Application.Services
         /// </summary>
         public async Task<ServiceResult<string>> AuthorizeApisToApplications(List<int> apiIds, List<int> applicationIds, int? days = null)
         {
-            try
+            // 验证API是否存在
+            var apisExist = await _apiInfoRepository.GetApiInfoListAsync(apiIds);
+            if (apisExist.Count() != apiIds.Count)
             {
-                // 验证API是否存在（此处示例未做具体过滤，可根据需要优化查询条件）
-                var apisExist = await _apiInfoRepository.GetApiInfoListAsync(null, null, null, null, null, 0, 0);
-                if (apisExist == null || apisExist.Count() != apiIds.Count)
+                return ServiceResult<string>.Fail("部分或全部指定的API不存在。");
+            }
+
+            // 验证应用程序是否存在
+            var appsExist = await _apiApplicationRepository.GetApplicationsByIdsAsync(applicationIds);
+            if (appsExist.Count() != applicationIds.Count)
+            {
+                return ServiceResult<string>.Fail("部分或全部指定的应用程序不存在。");
+            }
+
+            // 获取现有的授权映射（应用程序当前已授权的API）
+            var existingMappings = await _apiApplicationMappingRepository.GetExistingMappingsByApplicationIdsAsync(applicationIds);
+
+            // 生成新的授权映射
+            List<ApiApplicationMapping> newMappings = new List<ApiApplicationMapping>();
+            foreach (var apiId in apiIds)
+            {
+                foreach (var appId in applicationIds)
                 {
-                    return ServiceResult<string>.Fail("部分或全部指定的API不存在。");
-                }
-                // 验证应用程序是否存在
-                // 此处为示例，假设通过某个方法验证；如果没有对应方法，可自行实现
-                var appsExist = await _apiInfoRepository.GetApplicationsByApiIdAsync(apiIds.First());
-                if (appsExist == null || appsExist.Count() != applicationIds.Count)
-                {
-                    return ServiceResult<string>.Fail("部分或全部指定的应用程序不存在。");
-                }
-                List<ApiApplicationMapping> mappings = new List<ApiApplicationMapping>();
-                foreach (var apiId in apiIds)
-                {
-                    foreach (var appId in applicationIds)
+                    // 如果当前授权映射中没有这条映射，说明是新的映射关系
+                    if (!existingMappings.Any(m => m.ApiId == apiId && m.ApplicationId == appId))
                     {
-                        mappings.Add(new ApiApplicationMapping
+                        newMappings.Add(new ApiApplicationMapping
                         {
                             ApiId = apiId,
                             ApplicationId = appId,
@@ -181,26 +163,42 @@ namespace GJJApiGateway.Management.Application.Services
                         });
                     }
                 }
-                // 查询API信息并获取ApiPath字段
-                var apiPaths = apisExist.Select(api => api.ApiPath);
-                string concatenatedApiPaths = string.Join(",", apiPaths);
+            }
 
-                // 处理JWT token相关的信息
-                var exp = (DateTime.UtcNow.AddDays(days ?? 36500) - new DateTime(1970, 1, 1)).TotalSeconds;
-                foreach (var app in appsExist)
-                {
-                    var srtJson = JwtHelper.EncryptApi(app.Id, app.ApplicationName, string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
-                    app.JwtToken = srtJson;
-                }
-                await _apiInfoRepository.InsertApiApplicationMappingsAsync(mappings);
-                await _apiInfoRepository.UpdateApplicationsAsync(appsExist);
-                return ServiceResult<string>.Success("API成功授权给指定的应用程序。", "授权成功");
-            }
-            catch (Exception ex)
+            // 生成JWT Token和更新TokenVersion
+            var apiPaths = apisExist.Select(api => api.ApiPath);
+            string concatenatedApiPaths = string.Join(",", apiPaths);
+
+            var exp = (DateTime.UtcNow.AddDays(days ?? 36500) - new DateTime(1970, 1, 1)).TotalSeconds;
+            foreach (var app in appsExist)
             {
-                return ServiceResult<string>.Fail($"API授权时发生异常：{ex.Message}");
+                app.TokenVersion += 1; // 增加Token版本号
+                var srtJson = JwtHelper.EncryptApi(app.Id, app.ApplicationName, string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
+                app.JwtToken = srtJson;
             }
+
+            // 获取现有的授权映射中应该删除的授权关系
+            var mappingsToDelete = existingMappings
+                .Where(m => !apiIds.Contains(m.ApiId) || !applicationIds.Contains(m.ApplicationId))
+                .ToList();
+
+            // 删除不再需要的授权映射
+            int row1 = await _apiApplicationMappingRepository.DeleteOldMappingsAsync(mappingsToDelete);
+
+            // 插入新的授权映射
+            if (newMappings.Any())
+            {
+                int row2 = await _apiApplicationMappingRepository.InsertApiApplicationMappingsAsync(newMappings);
+            }
+
+            // 更新应用程序信息
+            bool b1 = await _apiApplicationRepository.UpdateApplicationsAsync(appsExist);
+
+            return ServiceResult<string>.Success("API成功授权给指定的应用程序。", "授权成功");
         }
+
+
+
 
         /// <summary>
         /// 更新指定API的状态
@@ -224,16 +222,9 @@ namespace GJJApiGateway.Management.Application.Services
         /// </summary>
         public async Task<ServiceResult<string>> DeleteApiAsync(int apiId)
         {
-            try
-            {
-                bool success = await _apiInfoRepository.DeleteApiInfoAsync(apiId);
-                return success ? ServiceResult<string>.Success("删除成功。", "删除成功")
-                               : ServiceResult<string>.Fail("删除API失败。");
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<string>.Fail($"删除API时发生异常: {ex.Message}");
-            }
+            bool success = await _apiInfoRepository.DeleteApiInfoAsync(apiId);
+            return success ? ServiceResult<string>.Success("删除成功。", "删除成功")
+                           : ServiceResult<string>.Fail("删除API失败。");
         }
 
         /// <summary>
@@ -241,16 +232,9 @@ namespace GJJApiGateway.Management.Application.Services
         /// </summary>
         public async Task<ServiceResult<IEnumerable<A_ApiApplicationDto>>> GetAuthorizedApplications(int apiId)
         {
-            try
-            {
-                var applications = await _apiInfoRepository.GetApplicationsByApiIdAsync(apiId);
-                var appDtos = _mapper.Map<List<A_ApiApplicationDto>>(applications);
-                return ServiceResult<IEnumerable<A_ApiApplicationDto>>.Success(appDtos, "查询成功");
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<IEnumerable<A_ApiApplicationDto>>.Fail($"获取授权应用时发生异常：{ex.Message}");
-            }
+            var applications = await _apiInfoRepository.GetApplicationsByApiIdAsync(apiId);
+            var appDtos = _mapper.Map<List<A_ApiApplicationDto>>(applications);
+            return ServiceResult<IEnumerable<A_ApiApplicationDto>>.Success(appDtos, "查询成功");
         }
 
         /// <summary>
@@ -258,16 +242,9 @@ namespace GJJApiGateway.Management.Application.Services
         /// </summary>
         public async Task<ServiceResult<IEnumerable<A_ApiInfoDto>>> GetAuthorizedApis(int applicationId)
         {
-            try
-            {
-                var apis = await _apiInfoRepository.GetApisByApplicationIdAsync(applicationId);
-                var apiDtos = _mapper.Map<List<A_ApiInfoDto>>(apis);
-                return ServiceResult<IEnumerable<A_ApiInfoDto>>.Success(apiDtos, "查询成功");
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<IEnumerable<A_ApiInfoDto>>.Fail($"获取授权API时发生异常：{ex.Message}");
-            }
+            var apis = await _apiInfoRepository.GetApisByApplicationIdAsync(applicationId);
+            var apiDtos = _mapper.Map<IEnumerable<A_ApiInfoDto>>(apis);
+            return ServiceResult<IEnumerable<A_ApiInfoDto>>.Success(apiDtos, "查询成功");
         }
 
         /// <summary>
@@ -275,31 +252,24 @@ namespace GJJApiGateway.Management.Application.Services
         /// </summary>
         public async Task<ServiceResult<string>> AutoRegisterApis()
         {
-            try
-            {
-                // 从数据层获取所有已存在的 API 信息
-                List<ApiInfo> existingApis = await _apiInfoRepository.GetAllApiInfosAsync();
-                var m_existingApis = _mapper.Map<IEnumerable<CommonApiInfoDto>>(existingApis);
-                // 指定需要扫描的 Controller 命名空间（请根据实际情况修改）
-                string targetNamespace = "GJJApiGateway.Management.Api.Controllers";
-                // 调用 Common 层工具方法扫描，获取需要新增的 API 信息列表
-                List<CommonApiInfoDto> m_addList = ApiRegistrationHelper.ScanControllersForApiInfo(m_existingApis, targetNamespace);
-                var addList = _mapper.Map<IEnumerable<ApiInfo>>(m_addList);
-                // 调用数据层方法批量插入新增的 API 信息
-                int row = await _apiInfoRepository.BulkInsertApiInfosAsync(addList);
+            // 从数据层获取所有已存在的 API 信息
+            IEnumerable<ApiInfo> existingApis = await _apiInfoRepository.GetAllApiInfosAsync();
+            var m_existingApis = _mapper.Map<IEnumerable<CommonApiInfoDto>>(existingApis);
+            // 指定需要扫描的 Controller 命名空间（请根据实际情况修改）
+            string targetNamespace = "GJJApiGateway.Management.Api.Controllers";
+            // 调用 Common 层工具方法扫描，获取需要新增的 API 信息列表
+            List<CommonApiInfoDto> m_addList = ApiRegistrationHelper.ScanControllersForApiInfo(m_existingApis, targetNamespace);
+            var addList = _mapper.Map<IEnumerable<ApiInfo>>(m_addList);
+            // 调用数据层方法批量插入新增的 API 信息
+            int row = await _apiInfoRepository.BulkInsertApiInfosAsync(addList);
 
-                if (row > 0)
-                {
-                    return ServiceResult<string>.Success("自动注册API成功。", "自动注册成功");
-                }
-                else
-                {
-                    return ServiceResult<string>.Fail("没有新的API需要自动注册。");
-                }
-            }
-            catch (Exception ex)
+            if (row > 0)
             {
-                return ServiceResult<string>.Fail($"自动注册API时发生异常：{ex.Message}");
+                return ServiceResult<string>.Success("自动注册API成功。", "自动注册成功");
+            }
+            else
+            {
+                return ServiceResult<string>.Fail("没有新的API需要自动注册。");
             }
         }
 

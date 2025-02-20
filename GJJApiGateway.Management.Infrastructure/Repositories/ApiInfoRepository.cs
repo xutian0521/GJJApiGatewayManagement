@@ -1,6 +1,8 @@
 ﻿using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Model.Entities;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -101,29 +103,24 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
             return false;
         }
 
+        // 获取与指定 ApiId 相关的应用程序列表
         public async Task<IEnumerable<ApiApplication>> GetApplicationsByApiIdAsync(int apiId)
         {
-            // 直接查询 ApiApplicationMapping 表，并联接 ApiApplication 表
-            string sql = @"
-        SELECT app.* 
-        FROM ApiApplication app
-        INNER JOIN ApiApplicationMapping mapping ON app.Id = mapping.ApplicationId
-        WHERE mapping.ApiId = @ApiId";
+            var query = _context.ApiApplications
+                .Where(app => _context.ApiApplicationMappings
+                    .Any(mapping => mapping.ApiId == apiId && mapping.ApplicationId == app.Id));
 
-            return await _context.ApiApplications.FromSqlRaw(sql, new { ApiId = apiId }).ToListAsync();
+            return await query.ToListAsync();
         }
 
-
+        // 获取与指定 ApplicationId 相关的 API 列表
         public async Task<IEnumerable<ApiInfo>> GetApisByApplicationIdAsync(int applicationId)
         {
-            // 直接查询 ApiApplicationMapping 表，并联接 ApiInfo 表
-            string sql = @"
-        SELECT api.* 
-        FROM ApiInfo api
-        INNER JOIN ApiApplicationMapping mapping ON api.Id = mapping.ApiId
-        WHERE mapping.ApplicationId = @ApplicationId";
+            var query = _context.ApiInfos
+                .Where(api => _context.ApiApplicationMappings
+                    .Any(mapping => mapping.ApplicationId == applicationId && mapping.ApiId == api.Id));
 
-            return await _context.ApiInfos.FromSqlRaw(sql, new { ApplicationId = applicationId }).ToListAsync();
+            return await query.ToListAsync();
         }
 
         public async Task InsertApiApplicationMappingsAsync(IEnumerable<ApiApplicationMapping> mappings)
@@ -132,11 +129,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateApplicationsAsync(IEnumerable<ApiApplication> applications)
-        {
-            _context.ApiApplications.UpdateRange(applications);
-            await _context.SaveChangesAsync();
-        }
+
 
         /// <summary>
         /// 获取分页的API信息
@@ -155,7 +148,15 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 .Take(pageSize)
                 .ToListAsync();
         }
-        public async Task<List<ApiInfo>> GetAllApiInfosAsync()
+
+        // 获取API信息列表
+        public async Task<IEnumerable<ApiInfo>> GetApiInfoListAsync(IEnumerable<int> apiIds)
+        {
+            return await _context.ApiInfos
+                .Where(api => apiIds.Contains(api.Id))
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<ApiInfo>> GetAllApiInfosAsync()
         {
             return await _context.ApiInfos.ToListAsync();
         }
