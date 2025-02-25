@@ -12,6 +12,10 @@ namespace GJJApiGateway.Management.Application.DTOs
         /// API应用程序的唯一标识符。
         /// </summary>
         public int Id { get; set; }
+        /// <summary>
+        /// API应用程序的唯一标识符。
+        /// </summary>
+        public string? ApplicationId { get; set; }
 
         /// <summary>
         /// API应用程序的名称。

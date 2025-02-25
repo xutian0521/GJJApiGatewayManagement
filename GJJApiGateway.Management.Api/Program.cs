@@ -123,7 +123,7 @@ builder.Services.AddOpenApiDocument(configure =>
 
 
 #region 配置 OpenTelemetry
-string serviceName = "GJJApiGatewayManagement.Api";
+string serviceName = "GJJApiGateway.Management.Api";
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService($"{serviceName}_Service")) // 设置服务名
     .WithTracing(tracing => tracing
@@ -268,7 +268,7 @@ builder.Services.AddLogging(logging => logging.AddOpenTelemetry(openTelemetryLog
 
 #region 配置 Consul 服务注册
 
-#if !DEBUG
+
 var consulClient = new ConsulClient(config =>
 {
     config.Address = new Uri("http://localhost:8500");
@@ -296,7 +296,7 @@ var registration = new AgentServiceRegistration
 
 // 注册到 Consul
 await consulClient.Agent.ServiceRegister(registration);
-# endif
+
 #endregion
 
 #region 配置 Kestrel 服务器端口

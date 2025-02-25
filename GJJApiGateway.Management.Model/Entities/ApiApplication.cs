@@ -13,9 +13,13 @@ namespace GJJApiGateway.Management.Model.Entities
     public class ApiApplication
     {
         /// <summary>
-        /// API应用程序的唯一标识符。
+        /// 自增id。
         /// </summary>
         public int Id { get; set; }
+        /// <summary>
+        /// API应用程序的唯一标识符。
+        /// </summary>
+        public string? ApplicationId { get; set; }
 
         /// <summary>
         /// API应用程序的名称。

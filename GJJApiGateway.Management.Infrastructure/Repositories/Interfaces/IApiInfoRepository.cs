@@ -6,6 +6,10 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
 {
     public interface IApiInfoRepository
     {
+        Task<ApiInfo> GetApiInfoByPathAsync(string apiPath);
+        Task<IEnumerable<ApiInfo>> GetApiInfoListAsync();
+        Task<ApiApplication> GetApiApplicationWithJwtAsync(int applicationId);
+        Task<List<ApiInfo>> GetAuthorizedApisAsync(int applicationId);
         Task<IEnumerable<ApiInfo>> GetApiInfoAsync(string apiChineseName, string description, string businessIdentifier, string apiSource, string apiPath, int pageIndex, int pageSize);
         Task<IEnumerable<ApiInfo>> GetApiInfoListAsync(IEnumerable<int> apiIds);
         Task<int> GetApiInfoCountAsync(string apiChineseName, string description, string businessIdentifier, string apiSource, string apiPath);

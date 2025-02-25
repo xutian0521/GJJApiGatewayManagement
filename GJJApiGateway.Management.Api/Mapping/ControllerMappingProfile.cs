@@ -16,8 +16,7 @@ namespace GJJApiGateway.Management.Api.Mappings
             // 将业务层 A_ApiInfoDto 映射为 API 层 ApiInfoViewModel
             CreateMap<A_ApiInfoDto, ApiInfoVM>().ReverseMap();
 
-            // 将业务层 A_ApiApplicationDto 映射为 API 层 ApiApplicationViewModel
-            CreateMap<A_ApiApplicationDto, ApiApplicationVM>().ReverseMap();
+
 
             // 其它 DTO 映射
             CreateMap<A_ApiConfigurationDto, C_ApiConfigurationDto>().ReverseMap();

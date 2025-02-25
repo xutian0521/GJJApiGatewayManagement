@@ -1,130 +1,200 @@
-﻿using AutoMapper;
-using GJJApiGateway.Management.Api.DTOs;
+﻿using GJJApiGateway.Management.Model.Entities;
+using JWT.Serializers;
+using JWT;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using GJJApiGateway.Management.Application.Interfaces;
-using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
-using GJJApiGateway.Management.Model.Entities;
 using GJJApiGateway.Management.Model.ViewModels;
+using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
+using GJJApiGateway.Management.Common.Constants;
+using GJJApiGateway.Management.Infrastructure.Repositories;
+using GJJApiGateway.Management.Application.DTOs;
+using GJJApiGateway.Management.Common.Utilities;
+using Microsoft.AspNetCore.DataProtection;
+using Newtonsoft.Json.Linq;
+using AutoMapper;
 
 namespace GJJApiGateway.Management.Application.Services
 {
-    /// <summary>
-    /// 授权服务实现，处理授权规则的具体业务逻辑。
-    /// </summary>
     public class AuthorizationService : IAuthorizationService
     {
-        /// <summary>
-        /// 授权仓储接口，用于访问授权规则数据。
-        /// </summary>
-        private readonly IAuthorizationRepository _authorizationRepository;
-
-        /// <summary>
-        /// AutoMapper 映射器，用于对象之间的映射转换。
-        /// </summary>
+        private readonly IApiInfoRepository _apiRepository;
+        private static MemoryCache _apiInfoCache = new MemoryCache(new MemoryCacheOptions());
+        private static MemoryCache _apiAppCache = new MemoryCache(new MemoryCacheOptions());
+        string _secret = "GQDstcKsx0NHjPOuXOYg5MbeJ1XT0uFiwDVvVBrk";
         private readonly IMapper _mapper;
-
-        /// <summary>
-        /// 构造函数，注入授权仓储和 AutoMapper 映射器。
-        /// </summary>
-        /// <param name="authorizationRepository">授权仓储接口实例。</param>
-        /// <param name="mapper">AutoMapper 映射器实例。</param>
-        public AuthorizationService(IAuthorizationRepository authorizationRepository, IMapper mapper)
+        public AuthorizationService(IApiInfoRepository apiRepository, IMapper mapper)
         {
-            _authorizationRepository = authorizationRepository;
+            _apiRepository = apiRepository;
             _mapper = mapper;
         }
 
-        /// <summary>
-        /// 获取所有授权规则。
-        /// </summary>
-        /// <returns>包含所有授权规则的视图模型集合。</returns>
-        public async Task<IEnumerable<AuthorizationViewModel>> GetAllAsync()
+        public async Task<A_ApiAuthorizationCheckResultDto> ValidateApiAuthorizationAsync(string jwtToken, string apiPath)
         {
-            // 从仓储获取所有授权规则实体
-            var authorizations = await _authorizationRepository.GetAllAsync();
+            // 规范化传入的 apiPath
+            string normalizedApiPath = NormalizeApiPath(apiPath);
 
-            // 将实体映射为视图模型并返回
-            return _mapper.Map<IEnumerable<AuthorizationViewModel>>(authorizations);
-        }
-
-        /// <summary>
-        /// 根据 ID 获取指定的授权规则。
-        /// </summary>
-        /// <param name="id">授权规则的唯一标识符。</param>
-        /// <returns>指定的授权规则视图模型，如果不存在则返回 null。</returns>
-        public async Task<AuthorizationViewModel> GetByIdAsync(int id)
-        {
-            // 从仓储获取指定 ID 的授权规则实体
-            var authorization = await _authorizationRepository.GetByIdAsync(id);
-
-            // 将实体映射为视图模型并返回
-            return _mapper.Map<AuthorizationViewModel>(authorization);
-        }
-
-        /// <summary>
-        /// 创建新的授权规则。
-        /// </summary>
-        /// <param name="dto">创建授权规则的数据传输对象。</param>
-        /// <returns>创建后的授权规则视图模型。</returns>
-        public async Task<AuthorizationViewModel> CreateAsync(CreateAuthorizationDto dto)
-        {
-            // 将创建 DTO 映射为授权规则实体
-            var authorization = _mapper.Map<Authorization>(dto);
-
-            // 设置创建和更新时间戳
-            authorization.CreatedAt = DateTime.UtcNow;
-            authorization.UpdatedAt = DateTime.UtcNow;
-
-            // 调用仓储添加新的授权规则实体
-            await _authorizationRepository.AddAsync(authorization);
-
-            // 将实体映射为视图模型并返回
-            return _mapper.Map<AuthorizationViewModel>(authorization);
-        }
-
-        /// <summary>
-        /// 更新已有的授权规则。
-        /// </summary>
-        /// <param name="dto">更新授权规则的数据传输对象。</param>
-        /// <returns>更新后的授权规则视图模型，如果授权规则不存在则返回 null。</returns>
-        public async Task<AuthorizationViewModel> UpdateAsync(UpdateAuthorizationDto dto)
-        {
-            // 从仓储获取指定 ID 的授权规则实体
-            var authorization = await _authorizationRepository.GetByIdAsync(dto.Id);
-            if (authorization == null)
+            // 校验JWT Token
+            string _json = "";
+            var b = JwtHelper.ValidateJwtToken(jwtToken, _secret, out _json);
+            var jwtPayload = System.Text.Json.JsonSerializer.Deserialize<AuthJwtPayload>(_json);
+            if (!b)
             {
-                return null; // 授权规则不存在
+                return new A_ApiAuthorizationCheckResultDto
+                {
+                    IsAuthorized = false,
+                    StatusCode = 401,
+                    Message = "JWT验证失败"
+                };
             }
 
-            // 将更新 DTO 映射到授权规则实体
-            _mapper.Map(dto, authorization);
+            // 校验API信息是否存在
+            var apiInfo = await this.GetApiInfoByApiPathAsync(normalizedApiPath);
+            if (apiInfo == null)
+            {
+                return new A_ApiAuthorizationCheckResultDto
+                {
+                    IsAuthorized = false,
+                    StatusCode = 401,
+                    Message = "API注册未初始化该接口"
+                };
+            }
 
-            // 更新更新时间戳
-            authorization.UpdatedAt = DateTime.UtcNow;
+            // 校验API是否上线
+            if (apiInfo.Status != ApiOnlineStatusConst.已上线)
+            {
+                return new A_ApiAuthorizationCheckResultDto
+                {
+                    IsAuthorized = false,
+                    StatusCode = 401,
+                    Message = "API未上线"
+                };
+            }
 
-            // 调用仓储更新授权规则实体
-            await _authorizationRepository.UpdateAsync(authorization);
+            // 校验API是否启用
+            if (!apiInfo.IsEnabled)
+            {
+                return new A_ApiAuthorizationCheckResultDto
+                {
+                    IsAuthorized = false,
+                    StatusCode = 401,
+                    Message = "API未启用"
+                };
+            }
 
-            // 将实体映射为视图模型并返回
-            return _mapper.Map<AuthorizationViewModel>(authorization);
+            // 校验Token是否过期
+            if (jwtPayload.exp < (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds)
+            {
+                return new A_ApiAuthorizationCheckResultDto
+                {
+                    IsAuthorized = false,
+                    StatusCode = 401,
+                    Message = "Token 已过期"
+                };
+            }
+
+            // 获取当前应用程序授权的所有API（这里假设 API 路径在数据库中也是保存的统一格式）
+            var apis = await this.GetAuthorizedApisAsync(jwtPayload.applicationId);
+
+            // 将数据库中获取到的API路径也进行规范化后再比较
+            var normalizedAuthorizedApiPaths = apis.Select(x => x.ApiPath.ToLower());
+            if (!normalizedAuthorizedApiPaths.Contains(normalizedApiPath))
+            {
+                return new A_ApiAuthorizationCheckResultDto
+                {
+                    IsAuthorized = false,
+                    StatusCode = 401,
+                    Message = $"API未授权: {apiPath}"
+                };
+            }
+
+            // 如果验证通过
+            return new A_ApiAuthorizationCheckResultDto
+            {
+                IsAuthorized = true,
+                StatusCode = 200,
+                Message = "授权成功"
+            };
         }
 
         /// <summary>
-        /// 删除指定 ID 的授权规则。
+        /// 规范化API路径：先去除前后斜杠，然后移除第一层路由，再转换为小写
         /// </summary>
-        /// <param name="id">授权规则的唯一标识符。</param>
-        /// <returns>如果删除成功则返回 true，否则返回 false。</returns>
-        public async Task<bool> DeleteAsync(int id)
+        /// <param name="path">原始API路径</param>
+        /// <returns>规范化后的API路径</returns>
+        private string NormalizeApiPath(string path)
         {
-            // 从仓储获取指定 ID 的授权规则实体
-            var authorization = await _authorizationRepository.GetByIdAsync(id);
-            if (authorization == null)
+            if (string.IsNullOrWhiteSpace(path))
+                return string.Empty;
+
+            // 去除前后斜杠
+            var normalized = path.Trim('/');
+            var segments = normalized.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length > 1)
             {
-                return false; // 授权规则不存在
+                // 移除第一层路由
+                normalized = string.Join("/", segments.Skip(1));
+            }
+            else if (segments.Length == 1)
+            {
+                normalized = segments[0];
+            }
+            return normalized.ToLowerInvariant();
+        }
+
+
+
+        public async Task<ApiInfo> GetApiInfoByApiPathAsync(string apiPath)
+        {
+            // 优先从缓存获取Api信息
+            if (!_apiInfoCache.TryGetValue("ApiInfoList", out IEnumerable<ApiInfo> apiList))
+            {
+                apiList = await _apiRepository.GetApiInfoListAsync();
+                _apiInfoCache.Set("ApiInfoList", apiList, TimeSpan.FromMinutes(1)); // 设置缓存时间，例如1分钟
             }
 
-            // 调用仓储删除授权规则实体
-            await _authorizationRepository.DeleteAsync(id);
-            return true; // 删除成功
+            return apiList.FirstOrDefault(x => x.ApiPath.Equals(apiPath, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public async Task<List<A_ApiInfoDto>> GetAuthorizedApisAsync(int applicationId)
+        {
+            // 优先从缓存获取ApiApplication信息
+            if (!_apiAppCache.TryGetValue($"AuthorizedApis_{applicationId}", out List<ApiInfo> apis))
+            {
+                apis = await _apiRepository.GetAuthorizedApisAsync(applicationId);
+                if (apis != null)
+                {
+                    _apiAppCache.Set($"AuthorizedApis_{applicationId}", apis, TimeSpan.FromMinutes(1)); // 设置缓存时间
+                }
+            }
+            var apiDtos = _mapper.Map< List < A_ApiInfoDto >>(apis);
+            return apiDtos;
+        }
+
+        public bool ValidateJwtToken(string jwtToken, out AuthJwtPayload payload)
+        {
+            string _json = "";
+            try
+            {
+                var b = JwtHelper.ValidateJwtToken(jwtToken, _secret, out _json);
+                if (!b)
+                {
+                    payload = new AuthJwtPayload();
+                    return false;
+                }
+                payload = System.Text.Json.JsonSerializer.Deserialize<AuthJwtPayload>(_json);
+                return true;
+            }
+            catch (Exception)
+            {
+                payload = new AuthJwtPayload();
+                return false;
+            }
         }
     }
+
 }

@@ -47,7 +47,7 @@ namespace GJJApiGateway.Management.Application.Services
             {
                 return ServiceResult<A_LoginResponseDto>.Fail("密码不正确");
             }
-            user.LastLoginTime = DateTime.Now;
+                user.LastLoginTime = DateTime.Now;
             var UserDb= _mapper.Map<SysUserInfo>(user);
             int updateRow = await _sysUserInfoRepository.UpdateAsync(UserDb);
             string userJson = System.Text.Json.JsonSerializer.Serialize(user);

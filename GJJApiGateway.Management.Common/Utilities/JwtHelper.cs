@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.DataProtection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GJJApiGateway.Management.Common.Utilities
 {
@@ -26,7 +28,7 @@ namespace GJJApiGateway.Management.Common.Utilities
         /// <param name="exp">令牌的过期时间，表示为从1970年1月1日以来的秒数。</param>
         /// <param name="tokenVersion">令牌的版本号，用于确保令牌的唯一性和有效性。</param>
         /// <returns>生成的JWT令牌字符串，包含所有授权信息和过期时间。</returns>
-        public static string EncryptApi(int applicationId, string applicationName,
+        public static string EncryptApi(string applicationId, string applicationName,
             string apiIds, string authorizationDurationDays, string concatenatedApiPaths, string authMethod, double exp, int tokenVersion)
         {
             #region 1) 加密
@@ -65,6 +67,7 @@ namespace GJJApiGateway.Management.Common.Utilities
             #region 1) 加密
             var payload = new Dictionary<string, object>
             {
+                { "applicationId", 1 },
                 { "userId", userId },
                 { "userName", userName },
                 { "roleId", roleId },
@@ -111,5 +114,57 @@ namespace GJJApiGateway.Management.Common.Utilities
 
         }
 
+        /// <summary>
+        /// 使用JWT进行加密，生成包含授权信息的令牌。
+        /// </summary>
+        /// <param name="payload">负载数据</param>
+        /// <param name="secret">秘钥</param>
+        /// <returns>生成的JWT令牌</returns>
+        public static string Encode(IDictionary<string, object> payload, string secret)
+        {
+            IJwtAlgorithm algorithm = new HMACSHA256Algorithm(); // 使用HMAC SHA256算法进行加密
+            IJsonSerializer serializer = new JsonNetSerializer(); // 使用Json.NET进行序列化
+            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder(); // 使用基于URL的Base64编码器
+            IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
+            var token = encoder.Encode(payload, secret);
+            return token;
+        }
+
+        /// <summary>
+        /// 解码JWT并验证签名
+        /// </summary>
+        /// <param name="jwtToken">JWT令牌</param>
+        /// <param name="secret">秘钥</param>
+        /// <returns>解码后的JWT负载</returns>
+        public static IDictionary<string, object> Decode(string jwtToken, string secret)
+        {
+            IJsonSerializer serializer = new JsonNetSerializer();
+            IDateTimeProvider provider = new UtcDateTimeProvider();
+            IJwtValidator validator = new JwtValidator(serializer, provider);
+            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+            IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder);
+
+            return decoder.DecodeToObject(jwtToken, secret, verify: true);
+        }
+
+        public  static bool ValidateJwtToken(string jwtToken, string secret, out string json)
+        {
+            try
+            {
+                IJsonSerializer serializer = new JsonNetSerializer();
+                IDateTimeProvider provider = new UtcDateTimeProvider();
+                IJwtValidator validator = new JwtValidator(serializer, provider);
+                IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+                IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder);
+                json = decoder.Decode(jwtToken, secret, verify: true);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                json = "";
+                return false;
+            }
+        }
     }
 }

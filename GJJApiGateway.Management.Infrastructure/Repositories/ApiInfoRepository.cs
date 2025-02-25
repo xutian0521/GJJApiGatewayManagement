@@ -18,6 +18,40 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task<ApiInfo> GetApiInfoByPathAsync(string apiPath)
+        {
+            return await _context.ApiInfos
+                .FirstOrDefaultAsync(api => api.ApiPath == apiPath);
+        }
+
+        // 获取ApiInfo列表
+        public async Task<IEnumerable<ApiInfo>> GetApiInfoListAsync()
+        {
+            return await _context.ApiInfos.ToListAsync();
+        }
+        // 获取所有应用程序的JWT Token版本
+        public async Task<ApiApplication> GetApiApplicationWithJwtAsync(int applicationId)
+        {
+            return await _context.ApiApplications
+                .FirstOrDefaultAsync(app => app.Id == applicationId);
+        }
+        // 获取指定应用程序的所有已授权API
+        // 获取所有应用程序的JWT Token版本
+        public async Task<List<ApiInfo>> GetAuthorizedApisAsync(int applicationId)
+        {
+            var authorizedApis = await _context.ApiInfos
+                .Join(
+                    _context.ApiApplicationMappings,
+                    api => api.Id,
+                    mapping => mapping.ApiId,
+                    (api, mapping) => new { api, mapping }
+                )
+                .Where(joined => joined.mapping.ApplicationId == applicationId)
+                .Select(joined => joined.api)
+                .ToListAsync();
+
+            return authorizedApis;
+        }
         /// <summary>
         /// 获取分页的API信息
         /// </summary>

@@ -66,6 +66,9 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
             {
                 return false;
             }
+            app.LastModifiedTime = application.LastModifiedTime;
+            app.JwtToken = application.JwtToken;
+            app.ApplicationId = application.ApplicationId;
             app.ApplicationName = application.ApplicationName;
             app.Description = application.Description;
             app.ApiSource = application.ApiSource;

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GJJApiGateway.Management.Application.Services
 {
@@ -79,7 +80,7 @@ namespace GJJApiGateway.Management.Application.Services
 
                 // 生成JWT Token
                 var exp = (DateTime.UtcNow.AddDays(36500) - new DateTime(1970, 1, 1)).TotalSeconds;
-                var jwtToken = JwtHelper.EncryptApi(application.Id, application.ApplicationName, "", "36500", "", application.AuthMethod, exp, application.TokenVersion);
+                var jwtToken = JwtHelper.EncryptApi(application.ApplicationId, application.ApplicationName, "", "36500", "", application.AuthMethod, exp, application.TokenVersion);
 
                 // 将生成的JWT Token赋值到实体中
                 application.JwtToken = jwtToken;
@@ -109,6 +110,16 @@ namespace GJJApiGateway.Management.Application.Services
             {
                 // 将DTO转换为实体对象
                 var applicationEntity = _mapper.Map<ApiApplication>(applicationDto);
+
+                applicationEntity.LastModifiedTime = DateTime.Now;
+                applicationEntity.TokenVersion ++;
+
+                // 生成JWT Token
+                var exp = (DateTime.UtcNow.AddDays(36500) - new DateTime(1970, 1, 1)).TotalSeconds;
+                var jwtToken = JwtHelper.EncryptApi(applicationEntity.ApplicationId, applicationEntity.ApplicationName, "", "36500", "", applicationEntity.AuthMethod, exp, applicationEntity.TokenVersion);
+
+                // 将生成的JWT Token赋值到实体中
+                applicationEntity.JwtToken = jwtToken;
 
                 // 调用数据层更新
                 var result = await _repository.UpdateApiApplicationAsync(appId, applicationEntity);
