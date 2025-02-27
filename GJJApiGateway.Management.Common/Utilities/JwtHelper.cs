@@ -28,7 +28,7 @@ namespace GJJApiGateway.Management.Common.Utilities
         /// <param name="exp">令牌的过期时间，表示为从1970年1月1日以来的秒数。</param>
         /// <param name="tokenVersion">令牌的版本号，用于确保令牌的唯一性和有效性。</param>
         /// <returns>生成的JWT令牌字符串，包含所有授权信息和过期时间。</returns>
-        public static string EncryptApi(string applicationId, string applicationName,
+        public static string EncryptApi(int applicationId, string applicationName,
             string apiIds, string authorizationDurationDays, string concatenatedApiPaths, string authMethod, double exp, int tokenVersion)
         {
             #region 1) 加密

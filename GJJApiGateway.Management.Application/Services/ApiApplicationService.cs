@@ -80,7 +80,7 @@ namespace GJJApiGateway.Management.Application.Services
 
                 // 生成JWT Token
                 var exp = (DateTime.UtcNow.AddDays(36500) - new DateTime(1970, 1, 1)).TotalSeconds;
-                var jwtToken = JwtHelper.EncryptApi(application.ApplicationId, application.ApplicationName, "", "36500", "", application.AuthMethod, exp, application.TokenVersion);
+                var jwtToken = JwtHelper.EncryptApi(application.Id, application.ApplicationName, "", "36500", "", application.AuthMethod, exp, application.TokenVersion);
 
                 // 将生成的JWT Token赋值到实体中
                 application.JwtToken = jwtToken;
@@ -116,7 +116,7 @@ namespace GJJApiGateway.Management.Application.Services
 
                 // 生成JWT Token
                 var exp = (DateTime.UtcNow.AddDays(36500) - new DateTime(1970, 1, 1)).TotalSeconds;
-                var jwtToken = JwtHelper.EncryptApi(applicationEntity.ApplicationId, applicationEntity.ApplicationName, "", "36500", "", applicationEntity.AuthMethod, exp, applicationEntity.TokenVersion);
+                var jwtToken = JwtHelper.EncryptApi(applicationEntity.Id, applicationEntity.ApplicationName, "", "36500", "", applicationEntity.AuthMethod, exp, applicationEntity.TokenVersion);
 
                 // 将生成的JWT Token赋值到实体中
                 applicationEntity.JwtToken = jwtToken;

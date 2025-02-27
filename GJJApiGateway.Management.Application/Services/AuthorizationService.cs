@@ -47,11 +47,23 @@ namespace GJJApiGateway.Management.Application.Services
                 return new A_ApiAuthorizationCheckResultDto
                 {
                     IsAuthorized = false,
-                    StatusCode = 401,
+                    StatusCode = 403,
                     Message = "JWT验证失败"
                 };
             }
 
+            //API应用程序模式 不是免认证模式才验证
+            if (jwtPayload.authMethod == AuthMethodConst.免认证)
+            {
+                // 如果验证通过
+                return new A_ApiAuthorizationCheckResultDto
+                {
+                    IsAuthorized = true,
+                    StatusCode = 200,
+                    Message = "免认证"
+                };
+            }
+                
             // 校验API信息是否存在
             var apiInfo = await this.GetApiInfoByApiPathAsync(normalizedApiPath);
             if (apiInfo == null)
@@ -59,7 +71,7 @@ namespace GJJApiGateway.Management.Application.Services
                 return new A_ApiAuthorizationCheckResultDto
                 {
                     IsAuthorized = false,
-                    StatusCode = 401,
+                    StatusCode = 403,
                     Message = "API注册未初始化该接口"
                 };
             }
@@ -70,7 +82,7 @@ namespace GJJApiGateway.Management.Application.Services
                 return new A_ApiAuthorizationCheckResultDto
                 {
                     IsAuthorized = false,
-                    StatusCode = 401,
+                    StatusCode = 403,
                     Message = "API未上线"
                 };
             }
@@ -81,7 +93,7 @@ namespace GJJApiGateway.Management.Application.Services
                 return new A_ApiAuthorizationCheckResultDto
                 {
                     IsAuthorized = false,
-                    StatusCode = 401,
+                    StatusCode = 403,
                     Message = "API未启用"
                 };
             }
@@ -92,13 +104,13 @@ namespace GJJApiGateway.Management.Application.Services
                 return new A_ApiAuthorizationCheckResultDto
                 {
                     IsAuthorized = false,
-                    StatusCode = 401,
+                    StatusCode = 403,
                     Message = "Token 已过期"
                 };
             }
 
-            // 获取当前应用程序授权的所有API（这里假设 API 路径在数据库中也是保存的统一格式）
-            var apis = await this.GetAuthorizedApisAsync(jwtPayload.applicationId);
+                // 获取当前应用程序授权的所有API（这里假设 API 路径在数据库中也是保存的统一格式）
+                var apis = await this.GetAuthorizedApisAsync(jwtPayload.applicationId);
 
             // 将数据库中获取到的API路径也进行规范化后再比较
             var normalizedAuthorizedApiPaths = apis.Select(x => x.ApiPath.ToLower());
@@ -107,7 +119,7 @@ namespace GJJApiGateway.Management.Application.Services
                 return new A_ApiAuthorizationCheckResultDto
                 {
                     IsAuthorized = false,
-                    StatusCode = 401,
+                    StatusCode = 403,
                     Message = $"API未授权: {apiPath}"
                 };
             }

@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using NSwag.Generation.Processors.Security;
 using GJJApiGateway.Management.Application.Mapping;
 using GJJApiGateway.Management.Application.Extensions;
 using GJJApiGateway.Management.Application.Services;
@@ -24,26 +23,40 @@ using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region ÅäÖÃ Apollo ·Ö²¼Ê½ÅäÖÃÖĞĞÄ
+#region é…ç½® Apollo åˆ†å¸ƒå¼é…ç½®ä¸­å¿ƒ
 
-// ÅäÖÃ Apollo ·Ö²¼Ê½ÅäÖÃÖĞĞÄ
-// Apollo ÊÇÒ»¸ö·Ö²¼Ê½µÄÅäÖÃ¹ÜÀíÏµÍ³£¬ÄÜ¹»¶¯Ì¬µØÎªÓ¦ÓÃ³ÌĞòÌá¹©ÅäÖÃÊı¾İ£¬Ö§³ÖÅäÖÃµÄÊµÊ±¸üĞÂ¡£
-// Ê¹ÓÃ AddApollo ·½·¨£¬½« Apollo ÅäÖÃ¼¯³Éµ½ ASP.NET Core ÅäÖÃÏµÍ³ÖĞ¡£
-// Í¨¹ı builder.Configuration.GetSection("apollo") »ñÈ¡ÅäÖÃ½Úµã£¬²¢´«µİ¸ø AddApollo ·½·¨¡£
+// é…ç½® Apollo åˆ†å¸ƒå¼é…ç½®ä¸­å¿ƒ
+// Apollo æ˜¯ä¸€ä¸ªåˆ†å¸ƒå¼çš„é…ç½®ç®¡ç†ç³»ç»Ÿï¼Œèƒ½å¤ŸåŠ¨æ€åœ°ä¸ºåº”ç”¨ç¨‹åºæä¾›é…ç½®æ•°æ®ï¼Œæ”¯æŒé…ç½®çš„å®æ—¶æ›´æ–°ã€‚
+// ä½¿ç”¨ AddApollo æ–¹æ³•ï¼Œå°† Apollo é…ç½®é›†æˆåˆ° ASP.NET Core é…ç½®ç³»ç»Ÿä¸­ã€‚
+// é€šè¿‡ builder.Configuration.GetSection("apollo") è·å–é…ç½®èŠ‚ç‚¹ï¼Œå¹¶ä¼ é€’ç»™ AddApollo æ–¹æ³•ã€‚
 builder.Configuration.AddApollo(builder.Configuration.GetSection("apollo"));
+
+//é»˜è®¤åœ°å€
+string _consulHost = "http://192.168.2.188:8500--";
+string _jaegerHostgRPC = "http://192.168.2.188:4317--";
+string _jaegerHostHTTP = "http://192.168.2.188:4318--";
+string _seqHostHTTP = "http://192.168.2.188:5341/ingest/otlp/v1/traces--";
+string _seqHostLog = "http://192.168.2.188:5341/ingest/otlp/v1/logs--";
+// å…è®¸æ‰€æœ‰åœ°å€è®¿é—®ï¼Œæ”¯æŒä¸åŒæœåŠ¡å™¨éƒ¨ç½²
+var _hostIP = "192.168.2.101";
+//è¯»å–é…ç½®ä¸­å¿ƒ
+_consulHost = builder.Configuration["ConsulHost"];
+_jaegerHostgRPC = builder.Configuration["JaegerHostgRPC"];
+_jaegerHostHTTP = builder.Configuration["JaegerHostHTTP"];
+_seqHostHTTP = builder.Configuration["SeqHostHTTP"];
+_seqHostLog = builder.Configuration["SeqHostLog"];
+//_hostIP = builder.Configuration["LocalIP"];
 #endregion
 
 
-// ÔÊĞíËùÓĞµØÖ··ÃÎÊ£¬Ö§³Ö²»Í¬·şÎñÆ÷²¿Êğ
-var hostIP = "localhost";//Dns.GetHostAddresses(Dns.GetHostName())
-                //.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)?
-                //.ToString() ?? "127.0.0.1";
 
-Console.WriteLine($"µ±Ç°Ö÷»ú IP: {hostIP}");
 
-#region ÅäÖÃ CORS
 
-// Ìí¼Ó CORS ·şÎñ²¢¶¨ÒåÒ»¸ö²ßÂÔ£¬´ÓÅäÖÃÎÄ¼şÖĞ¶ÁÈ¡ÔÊĞíµÄÀ´Ô´
+Console.WriteLine($"å½“å‰ä¸»æœº IP: {_hostIP}");
+
+#region é…ç½® CORS
+
+// æ·»åŠ  CORS æœåŠ¡å¹¶å®šä¹‰ä¸€ä¸ªç­–ç•¥ï¼Œä»é…ç½®æ–‡ä»¶ä¸­è¯»å–å…è®¸çš„æ¥æº
 builder.Services.AddCors(options => options.AddPolicy("AppCors", policy =>
 {
     var hosts = builder.Configuration.GetValue<string>("AppHosts");
@@ -56,21 +69,21 @@ builder.Services.AddCors(options => options.AddPolicy("AppCors", policy =>
 
 #endregion
 
-// Ìí¼Ó¿ØÖÆÆ÷·şÎñµ½ÈİÆ÷
+// æ·»åŠ æ§åˆ¶å™¨æœåŠ¡åˆ°å®¹å™¨
 builder.Services.AddControllers();
 
-// ÅäÖÃ AutoMapper£¬Ö¸¶¨Ó³ÉäÅäÖÃÎÄ¼şËùÔÚµÄ³ÌĞò¼¯
+// é…ç½® AutoMapperï¼ŒæŒ‡å®šæ˜ å°„é…ç½®æ–‡ä»¶æ‰€åœ¨çš„ç¨‹åºé›†
 builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile));
 builder.Services.AddAutoMapper(typeof(ControllerMappingProfile));
 
 
 
-// ×¢²áÓ¦ÓÃ²ãÄ£¿é£¬°üÀ¨ÈÏÖ¤¡¢ÏŞÁ÷ºÍÂ·¾¶¹ÜÀí
+// æ³¨å†Œåº”ç”¨å±‚æ¨¡å—ï¼ŒåŒ…æ‹¬è®¤è¯ã€é™æµå’Œè·¯å¾„ç®¡ç†
 builder.Services.AddApplicationModule();
 builder.Services.AddInfrastructureModule(builder.Configuration);
 builder.Services.AddCommonModule();
 
-// ×¢²áÒµÎñ²ãÊı¾İ¿âµÈ
+// æ³¨å†Œä¸šåŠ¡å±‚æ•°æ®åº“ç­‰
 builder.Services.AddScoped<IApiApplicationService, ApiApplicationService>();
 builder.Services.AddScoped<IApiApplicationRepository, ApiApplicationRepository>();
 builder.Services.AddScoped<IApiApplicationMappingRepository, ApiApplicationMappingRepository>();
@@ -84,94 +97,94 @@ builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 
 
 
-// ÅäÖÃ JWT ÈÏÖ¤
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // ÉèÖÃÄ¬ÈÏµÄÈÏÖ¤·½°¸
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // ÉèÖÃÄ¬ÈÏµÄÌôÕ½·½°¸
-})
-.AddJwtBearer(options =>
-{
-    // ÅäÖÃ JWT ÁîÅÆÑéÖ¤²ÎÊı
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true, // ÑéÖ¤·¢ĞĞÕß
-        ValidateAudience = true, // ÑéÖ¤ÊÜÖÚ
-        ValidateLifetime = true, // ÑéÖ¤ÁîÅÆÓĞĞ§ÆÚ
-        ValidateIssuerSigningKey = true, // ÑéÖ¤Ç©ÃûÃÜÔ¿
-        ValidIssuer = builder.Configuration["Jwt:Issuer"], // ÓĞĞ§µÄ·¢ĞĞÕß
-        ValidAudience = builder.Configuration["Jwt:Audience"], // ÓĞĞ§µÄÊÜÖÚ
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // Ç©ÃûÃÜÔ¿
-    };
-});
+// é…ç½® JWT è®¤è¯
+// builder.Services.AddAuthentication(options =>
+// {
+//     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // è®¾ç½®é»˜è®¤çš„è®¤è¯æ–¹æ¡ˆ
+//     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // è®¾ç½®é»˜è®¤çš„æŒ‘æˆ˜æ–¹æ¡ˆ
+// })
+// .AddJwtBearer(options =>
+// {
+//     // é…ç½® JWT ä»¤ç‰ŒéªŒè¯å‚æ•°
+//     options.TokenValidationParameters = new TokenValidationParameters
+//     {
+//         ValidateIssuer = true, // éªŒè¯å‘è¡Œè€…
+//         ValidateAudience = true, // éªŒè¯å—ä¼—
+//         ValidateLifetime = true, // éªŒè¯ä»¤ç‰Œæœ‰æ•ˆæœŸ
+//         ValidateIssuerSigningKey = true, // éªŒè¯ç­¾åå¯†é’¥
+//         ValidIssuer = builder.Configuration["Jwt:Issuer"], // æœ‰æ•ˆçš„å‘è¡Œè€…
+//         ValidAudience = builder.Configuration["Jwt:Audience"], // æœ‰æ•ˆçš„å—ä¼—
+//         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // ç­¾åå¯†é’¥
+//     };
+// });
 
-// ÅäÖÃ OpenAPI£¨Ê¹ÓÃ NSwag£©
-builder.Services.AddOpenApiDocument(configure =>
-{
-    configure.Title = "API Gateway Management API"; // ÉèÖÃ API ÎÄµµ±êÌâ
-    configure.Version = "v1"; // ÉèÖÃ API °æ±¾
-    configure.AddSecurity("JWT", Enumerable.Empty<string>(), new NSwag.OpenApiSecurityScheme
-    {
-        Type = NSwag.OpenApiSecuritySchemeType.Http, // °²È«ÀàĞÍÎª HTTP
-        Scheme = "bearer", // ÈÏÖ¤·½°¸Îª bearer
-        BearerFormat = "JWT", // ÈÏÖ¤¸ñÊ½Îª JWT
-        Description = "ÊäÈë JWT Token£¬¸ñÊ½Îª Bearer {token}" // °²È«ÃèÊö
-    });
+// é…ç½® OpenAPIï¼ˆä½¿ç”¨ NSwagï¼‰
+// builder.Services.AddOpenApiDocument(configure =>
+// {
+//     configure.Title = "API Gateway Management API"; // è®¾ç½® API æ–‡æ¡£æ ‡é¢˜
+//     configure.Version = "v1"; // è®¾ç½® API ç‰ˆæœ¬
+//     configure.AddSecurity("JWT", Enumerable.Empty<string>(), new NSwag.OpenApiSecurityScheme
+//     {
+//         Type = NSwag.OpenApiSecuritySchemeType.Http, // å®‰å…¨ç±»å‹ä¸º HTTP
+//         Scheme = "bearer", // è®¤è¯æ–¹æ¡ˆä¸º bearer
+//         BearerFormat = "JWT", // è®¤è¯æ ¼å¼ä¸º JWT
+//         Description = "è¾“å…¥ JWT Tokenï¼Œæ ¼å¼ä¸º Bearer {token}" // å®‰å…¨æè¿°
+//     });
 
-    configure.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT")); // Ìí¼Ó°²È«´¦ÀíÆ÷
-});
+//     configure.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT")); // æ·»åŠ å®‰å…¨å¤„ç†å™¨
+// });
 
 
-#region ÅäÖÃ OpenTelemetry
+#region é…ç½® OpenTelemetry
 string serviceName = "GJJApiGateway.Management.Api";
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService($"{serviceName}_Service")) // ÉèÖÃ·şÎñÃû
+    .ConfigureResource(resource => resource.AddService($"{serviceName}_Service")) // è®¾ç½®æœåŠ¡å
     .WithTracing(tracing => tracing
         .AddSource($"{serviceName}_Source")
-        .AddAspNetCoreInstrumentation(options =>  // ÊÕ¼¯ HTTP ÇëÇóÊı¾İ
+        .AddAspNetCoreInstrumentation(options =>  // æ”¶é›† HTTP è¯·æ±‚æ•°æ®
         {
-            options.RecordException = true; // È·±£¼ÇÂ¼ HTTP ÇëÇóÖĞµÄÒì³£
-            options.Filter = (httpContext) =>
-            {
-                // ¹ıÂËµô²»ĞèÒª¼ÇÂ¼µÄ URL »òÇëÇóÂ·¾¶
-                var path = httpContext.Request.Path.Value;
-                return !path.StartsWith("/v1/health/service/") &&
-                       !path.StartsWith("/v1/catalog/nodes") &&
-                       !path.StartsWith("/notifications/v2") &&
-                       !path.StartsWith("/health") &&
-                       !path.StartsWith("/v1/agent");
-            };
+            options.RecordException = true; // ç¡®ä¿è®°å½• HTTP è¯·æ±‚ä¸­çš„å¼‚å¸¸
+            // options.Filter = (httpContext) =>
+            // {
+            //     // è¿‡æ»¤æ‰ä¸éœ€è¦è®°å½•çš„ URL æˆ–è¯·æ±‚è·¯å¾„
+            //     var path = httpContext.Request.Path.Value;
+            //     return !path.StartsWith("/v1/health/service/") &&
+            //            !path.StartsWith("/v1/catalog/nodes") &&
+            //            !path.StartsWith("/notifications/v2") &&
+            //            !path.StartsWith("/health") &&
+            //            !path.StartsWith("/v1/agent");
+            // };
         })
-        .AddHttpClientInstrumentation(options =>  // ÊÕ¼¯ HttpClient Êı¾İ
+        .AddHttpClientInstrumentation(options =>  // æ”¶é›† HttpClient æ•°æ®
         {
-            options.RecordException = true; // È·±£¼ÇÂ¼ HTTP ¿Í»§¶ËÇëÇóµÄÒì³£
-                                            // ¹ıÂËµô²»ĞèÒªµÄ HTTP ÇëÇó
-            options.FilterHttpRequestMessage = httpRequestMessage =>
-            {
-                // ¼ÙÉèÒªÅÅ³ıÄ³Ğ©Â·¾¶£¬Èç½¡¿µ¼ì²éÏà¹ØµÄÂ·¾¶
-                return !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/health/service/") &&
-                       !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/catalog/nodes") &&
-                       !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/notifications/v2") &&
-                       !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/health") &&
-                        !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/agent");
-            };
+            options.RecordException = true; // ç¡®ä¿è®°å½• HTTP å®¢æˆ·ç«¯è¯·æ±‚çš„å¼‚å¸¸
+                                            // è¿‡æ»¤æ‰ä¸éœ€è¦çš„ HTTP è¯·æ±‚
+            // options.FilterHttpRequestMessage = httpRequestMessage =>
+            // {
+            //     // å‡è®¾è¦æ’é™¤æŸäº›è·¯å¾„ï¼Œå¦‚å¥åº·æ£€æŸ¥ç›¸å…³çš„è·¯å¾„
+            //     return !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/health/service/") &&
+            //            !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/catalog/nodes") &&
+            //            !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/notifications/v2") &&
+            //            !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/health") &&
+            //             !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/agent");
+            // };
         })
         .AddSqlClientInstrumentation(options =>
         {
-            options.SetDbStatementForText = true; // ¼ÇÂ¼ SQL Óï¾äÎÄ±¾
-            options.RecordException = true; // ¼ÇÂ¼Êı¾İ¿âÒì³£
-            options.EnableConnectionLevelAttributes = true; // ¼ÇÂ¼Êı¾İ¿âÁ¬½Ó¼¶±ğµÄÊôĞÔ
-            options.Enrich = (activity, eventName, command) =>  //¶îÍâÌí¼ÓÒ»Ğ©ĞÅÏ¢
+            options.SetDbStatementForText = true; // è®°å½• SQL è¯­å¥æ–‡æœ¬
+            options.RecordException = true; // è®°å½•æ•°æ®åº“å¼‚å¸¸
+            options.EnableConnectionLevelAttributes = true; // è®°å½•æ•°æ®åº“è¿æ¥çº§åˆ«çš„å±æ€§
+            options.Enrich = (activity, eventName, command) =>  //é¢å¤–æ·»åŠ ä¸€äº›ä¿¡æ¯
             {
                 if (command is SqlCommand sqlCommand)
                 {
                     activity.SetTag("db.query_type", sqlCommand.CommandType.ToString());
                     activity.SetTag("db.timeout", sqlCommand.CommandTimeout);
-                    // ±éÀú command.Parameters£¬¼ÇÂ¼Ã¿¸ö²ÎÊıµÄÃû³ÆºÍÖµ
+                    // éå† command.Parametersï¼Œè®°å½•æ¯ä¸ªå‚æ•°çš„åç§°å’Œå€¼
                     foreach (IDataParameter param in sqlCommand.Parameters)
                     {
                         string parameterName = param.ParameterName;
-                        string parameterValue = param.Value?.ToString() ?? "NULL"; // ·ÀÖ¹¿ÕÖµ
+                        string parameterValue = param.Value?.ToString() ?? "NULL"; // é˜²æ­¢ç©ºå€¼
                         activity.SetTag($"db.command_parameter.{parameterName}", parameterValue);
                     }
                 }
@@ -179,102 +192,102 @@ builder.Services.AddOpenTelemetry()
         })
         //.AddEntityFrameworkCoreInstrumentation(options =>
         //{
-        //    options.SetDbStatementForStoredProcedure = true; // ¼ÇÂ¼´æ´¢¹ı³Ì
-        //    options.SetDbStatementForText = true; // ¼ÇÂ¼ EF Core Éú³ÉµÄ SQL
-        //    options.EnrichWithIDbCommand = (activity, command) => // ¶îÍâÌí¼ÓÒ»Ğ©ĞÅÏ¢
+        //    options.SetDbStatementForStoredProcedure = true; // è®°å½•å­˜å‚¨è¿‡ç¨‹
+        //    options.SetDbStatementForText = true; // è®°å½• EF Core ç”Ÿæˆçš„ SQL
+        //    options.EnrichWithIDbCommand = (activity, command) => // é¢å¤–æ·»åŠ ä¸€äº›ä¿¡æ¯
         //    {
         //        activity.SetTag("db.command_type", command.CommandType.ToString());
         //        activity.SetTag("db.command_timeout", command.CommandTimeout);
-        //        // ±éÀú command.Parameters£¬¼ÇÂ¼Ã¿¸ö²ÎÊıµÄÃû³ÆºÍÖµ
+        //        // éå† command.Parametersï¼Œè®°å½•æ¯ä¸ªå‚æ•°çš„åç§°å’Œå€¼
         //        foreach (IDataParameter param in command.Parameters)
         //        {
         //            string parameterName = param.ParameterName;
-        //            string parameterValue = param.Value?.ToString() ?? "NULL"; // ·ÀÖ¹¿ÕÖµ
+        //            string parameterValue = param.Value?.ToString() ?? "NULL"; // é˜²æ­¢ç©ºå€¼
         //            activity.SetTag($"db.command_parameter.{parameterName}", parameterValue);
         //        }
 
         //    };
         //    options.Filter = (providerName, command) =>
         //    {
-        //        return !command.CommandText.Contains("SensitiveTable"); // ¹ıÂËµôÃô¸ĞÊı¾İ±í
+        //        return !command.CommandText.Contains("SensitiveTable"); // è¿‡æ»¤æ‰æ•æ„Ÿæ•°æ®è¡¨
         //    };
 
         //})
         .AddOtlpExporter(options =>
         {
-            // ÍÆËÍµ½ Jaeger
-            options.Endpoint = new Uri("http://localhost:4317"); // Jaeger µÄ OTLP gRPC ¶Ëµã
-            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc; // Ê¹ÓÃ gRPC Ğ­Òé
+            // æ¨é€åˆ° Jaeger
+            options.Endpoint = new Uri(_jaegerHostgRPC); // Jaeger çš„ OTLP gRPC ç«¯ç‚¹
+            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc; // ä½¿ç”¨ gRPC åè®®
         })
         .AddOtlpExporter(options =>
         {
-            // ÍÆËÍµ½ Seq
-            options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/traces"); // Seq µÄ OTLP µ¼³öÂ·¾¶
-            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf; // Ê¹ÓÃ HTTP-Protobuf Ğ­Òé
+            // æ¨é€åˆ° Seq
+            options.Endpoint = new Uri(_seqHostHTTP); // Seq çš„ OTLP å¯¼å‡ºè·¯å¾„
+            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf; // ä½¿ç”¨ HTTP-Protobuf åè®®
         }))
     .WithMetrics(metrics => metrics
-        .AddAspNetCoreInstrumentation() // Ëü»á×Ô¶¯¸ú×ÙËùÓĞ¾­¹ı ASP.NET Core Ó¦ÓÃµÄ HTTP ÇëÇó£¬°üÀ¨ÇëÇóµÄ¿ªÊ¼Ê±¼ä¡¢½áÊøÊ±¼ä¡¢ÏìÓ¦Ê±¼ä¡¢×´Ì¬Âë¡¢ÇëÇó·½·¨£¨GET¡¢POST µÈ£©
-        .AddHttpClientInstrumentation()  //Õâ¸öÑ¡ÏîÊÇÓÃÀ´×Ô¶¯ÊÕ¼¯ HttpClient µÄÇëÇóºÍÏìÓ¦µÄĞÔÄÜÊı¾İ¡£Ëü»á²¶×½ËùÓĞÍ¨¹ı HttpClient ·¢³öµÄ HTTP ÇëÇó£¨ÀıÈç£¬API µ÷ÓÃ£©
-        .AddSqlClientInstrumentation()  // Ëü»á¼ÇÂ¼ SQL ²éÑ¯µÄÖ´ĞĞÊ±¼ä¡¢SQL ²éÑ¯µÄÎÄ±¾¡¢²ÎÊıĞÅÏ¢µÈ£¬°ïÖúÄã¼à¿ØÊı¾İ¿â²éÑ¯µÄĞÔÄÜ¡£
-        .AddInstrumentation(options =>   // ÔÊĞíÄãÌí¼Ó×Ô¶¨ÒåµÄÖ¸±êÊÕ¼¯Âß¼­¡£
+        .AddAspNetCoreInstrumentation() // å®ƒä¼šè‡ªåŠ¨è·Ÿè¸ªæ‰€æœ‰ç»è¿‡ ASP.NET Core åº”ç”¨çš„ HTTP è¯·æ±‚ï¼ŒåŒ…æ‹¬è¯·æ±‚çš„å¼€å§‹æ—¶é—´ã€ç»“æŸæ—¶é—´ã€å“åº”æ—¶é—´ã€çŠ¶æ€ç ã€è¯·æ±‚æ–¹æ³•ï¼ˆGETã€POST ç­‰ï¼‰
+        .AddHttpClientInstrumentation()  //è¿™ä¸ªé€‰é¡¹æ˜¯ç”¨æ¥è‡ªåŠ¨æ”¶é›† HttpClient çš„è¯·æ±‚å’Œå“åº”çš„æ€§èƒ½æ•°æ®ã€‚å®ƒä¼šæ•æ‰æ‰€æœ‰é€šè¿‡ HttpClient å‘å‡ºçš„ HTTP è¯·æ±‚ï¼ˆä¾‹å¦‚ï¼ŒAPI è°ƒç”¨ï¼‰
+        .AddSqlClientInstrumentation()  // å®ƒä¼šè®°å½• SQL æŸ¥è¯¢çš„æ‰§è¡Œæ—¶é—´ã€SQL æŸ¥è¯¢çš„æ–‡æœ¬ã€å‚æ•°ä¿¡æ¯ç­‰ï¼Œå¸®åŠ©ä½ ç›‘æ§æ•°æ®åº“æŸ¥è¯¢çš„æ€§èƒ½ã€‚
+        .AddInstrumentation(options =>   // å…è®¸ä½ æ·»åŠ è‡ªå®šä¹‰çš„æŒ‡æ ‡æ”¶é›†é€»è¾‘ã€‚
         {
             var meter = new System.Diagnostics.Metrics.Meter("MyCustomMeter", "1.0");
             var requestDuration = meter.CreateHistogram<int>("request_duration");
 
-            // ¼ÇÂ¼ÇëÇóµÄ³ÖĞøÊ±¼ä£¨¼ÙÉè»ñÈ¡ÁËÒ»¸ö´¦ÀíÊ±¼äÖµ£©
-            requestDuration.Record(100);  // ¼ÙÉèÊÇ 100 ºÁÃë
+            // è®°å½•è¯·æ±‚çš„æŒç»­æ—¶é—´ï¼ˆå‡è®¾è·å–äº†ä¸€ä¸ªå¤„ç†æ—¶é—´å€¼ï¼‰
+            requestDuration.Record(100);  // å‡è®¾æ˜¯ 100 æ¯«ç§’
 
             return meter;
         })
         .AddOtlpExporter(options =>
         {
-            options.Endpoint = new Uri("http://localhost:4318"); // Jaeger µÄ OTLP HTTP ¶Ëµã
+            options.Endpoint = new Uri(_jaegerHostHTTP); // Jaeger çš„ OTLP HTTP ç«¯ç‚¹
         }));
 
 
 #endregion
 
-#region  ÅäÖÃ OpenTelemetry ÈÕÖ¾
+#region  é…ç½® OpenTelemetry æ—¥å¿—
 
 builder.Services.AddLogging(logging => logging.AddOpenTelemetry(openTelemetryLoggerOptions =>
 {
-    // ÉèÖÃ×ÊÔ´¹¹½¨Æ÷£¬¶¨Òå OpenTelemetry ·şÎñµÄÏà¹ØÊôĞÔ
+    // è®¾ç½®èµ„æºæ„å»ºå™¨ï¼Œå®šä¹‰ OpenTelemetry æœåŠ¡çš„ç›¸å…³å±æ€§
     openTelemetryLoggerOptions.SetResourceBuilder(
-        ResourceBuilder.CreateEmpty() // ´´½¨Ò»¸ö¿ÕµÄ×ÊÔ´¹¹½¨Æ÷
-            .AddService($"{serviceName}_Service") // ÉèÖÃ·şÎñµÄÃû³Æ£¬Ìæ»»ÎªÄãµÄÓ¦ÓÃ³ÌĞòµÄÃû×Ö
+        ResourceBuilder.CreateEmpty() // åˆ›å»ºä¸€ä¸ªç©ºçš„èµ„æºæ„å»ºå™¨
+            .AddService($"{serviceName}_Service") // è®¾ç½®æœåŠ¡çš„åç§°ï¼Œæ›¿æ¢ä¸ºä½ çš„åº”ç”¨ç¨‹åºçš„åå­—
             .AddAttributes(new Dictionary<string, object>
             {
-                // ÔÚ×ÊÔ´ÖĞÌí¼Ó»·¾³µÈ¶îÍâÊôĞÔ
-                ["deployment.environment"] = "development" // Ìí¼Ó²¿Êğ»·¾³ÊôĞÔ£¬ÉèÖÃÎª "development"
+                // åœ¨èµ„æºä¸­æ·»åŠ ç¯å¢ƒç­‰é¢å¤–å±æ€§
+                ["deployment.environment"] = "development" // æ·»åŠ éƒ¨ç½²ç¯å¢ƒå±æ€§ï¼Œè®¾ç½®ä¸º "development"
             }));
 
-    // ÅäÖÃÒ»Ğ©ÖØÒªÑ¡ÏîÀ´ÌáÉıÈÕÖ¾Êı¾İµÄÖÊÁ¿
-    openTelemetryLoggerOptions.IncludeScopes = true; // ÆôÓÃÈÕÖ¾·¶Î§£¬ÕâÑùÍ¨¹ı `ILogger.BeginScope()` ¸½¼ÓµÄÊôĞÔÒ²»á·¢ËÍµ½ OTLP exporter
-    openTelemetryLoggerOptions.IncludeFormattedMessage = true; // È·±£ÈÕÖ¾ÏûÏ¢¿ÉÒÔ±» Seq ÕıÈ·Ê¶±ğÎªÔ­Ê¼ÏûÏ¢Ä£°å
+    // é…ç½®ä¸€äº›é‡è¦é€‰é¡¹æ¥æå‡æ—¥å¿—æ•°æ®çš„è´¨é‡
+    openTelemetryLoggerOptions.IncludeScopes = true; // å¯ç”¨æ—¥å¿—èŒƒå›´ï¼Œè¿™æ ·é€šè¿‡ `ILogger.BeginScope()` é™„åŠ çš„å±æ€§ä¹Ÿä¼šå‘é€åˆ° OTLP exporter
+    openTelemetryLoggerOptions.IncludeFormattedMessage = true; // ç¡®ä¿æ—¥å¿—æ¶ˆæ¯å¯ä»¥è¢« Seq æ­£ç¡®è¯†åˆ«ä¸ºåŸå§‹æ¶ˆæ¯æ¨¡æ¿
 
-    // Ìí¼Ó OTLP µ¼³öÆ÷£¬ÅäÖÃÈÕÖ¾Êı¾İµ¼³öµ½ OTLP ¶Ëµã
+    // æ·»åŠ  OTLP å¯¼å‡ºå™¨ï¼Œé…ç½®æ—¥å¿—æ•°æ®å¯¼å‡ºåˆ° OTLP ç«¯ç‚¹
     openTelemetryLoggerOptions.AddOtlpExporter(exporter =>
     {
-        // ÅäÖÃ OTLP µ¼³öÆ÷µÄ¶Ëµã£¬ÕâÀïÊ¹ÓÃ HTTP Ğ­Òé½øĞĞ´«Êä
-        // Ê¹ÓÃ `HttpProtobuf` Ğ­ÒéÊ±ĞèÒªÖ¸¶¨ÍêÕûµÄ¶ËµãÂ·¾¶
-        exporter.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs"); // ÉèÖÃ OTLP ·şÎñÆ÷¶ËµãµØÖ·£¬Ö¸¶¨½«ÈÕÖ¾·¢ËÍµ½ Seq
-        exporter.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf; // ÉèÖÃµ¼³öµÄĞ­ÒéÎª HTTP Protobuf ¸ñÊ½
-                                                                                    // Èç¹ûĞèÒªÉí·İÑéÖ¤£¬¿ÉÒÔÍ¨¹ıÉèÖÃ Header À´Ìí¼Ó API ÃÜÔ¿
-                                                                                    //exporter.Headers = "X-Seq-ApiKey=knt01glGTtj8hLA85HDV"; // ¿ÉÑ¡µÄÉí·İÑéÖ¤Í·£¬ÅäÖÃ Seq µÄ API ÃÜÔ¿
+        // é…ç½® OTLP å¯¼å‡ºå™¨çš„ç«¯ç‚¹ï¼Œè¿™é‡Œä½¿ç”¨ HTTP åè®®è¿›è¡Œä¼ è¾“
+        // ä½¿ç”¨ `HttpProtobuf` åè®®æ—¶éœ€è¦æŒ‡å®šå®Œæ•´çš„ç«¯ç‚¹è·¯å¾„
+        exporter.Endpoint = new Uri(_seqHostLog); // è®¾ç½® OTLP æœåŠ¡å™¨ç«¯ç‚¹åœ°å€ï¼ŒæŒ‡å®šå°†æ—¥å¿—å‘é€åˆ° Seq
+        exporter.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf; // è®¾ç½®å¯¼å‡ºçš„åè®®ä¸º HTTP Protobuf æ ¼å¼
+                                                                                    // å¦‚æœéœ€è¦èº«ä»½éªŒè¯ï¼Œå¯ä»¥é€šè¿‡è®¾ç½® Header æ¥æ·»åŠ  API å¯†é’¥
+                                                                                    //exporter.Headers = "X-Seq-ApiKey=knt01glGTtj8hLA85HDV"; // å¯é€‰çš„èº«ä»½éªŒè¯å¤´ï¼Œé…ç½® Seq çš„ API å¯†é’¥
     });
 }));
 
 #endregion
 
-#region ÅäÖÃ Consul ·şÎñ×¢²á
+#region é…ç½® Consul æœåŠ¡æ³¨å†Œ
 
 
 var consulClient = new ConsulClient(config =>
 {
-    config.Address = new Uri("http://localhost:8500");
+    config.Address = new Uri(_consulHost);
 });
 
-// ×¢²á Consul ¿Í»§¶Ë£¨IConsulClient£©Îªµ¥Àı
+// æ³¨å†Œ Consul å®¢æˆ·ç«¯ï¼ˆIConsulClientï¼‰ä¸ºå•ä¾‹
 builder.Services.AddSingleton<IConsulClient>(sp =>
 {
     return consulClient;
@@ -283,24 +296,24 @@ var registration = new AgentServiceRegistration
 {
     ID = $"{serviceName}-1",
     Name = $"{serviceName}",
-    Address = hostIP, // ÈÃ Consul ×Ô¶¯Ê¶±ğ IP
+    Address = _hostIP, // è®© Consul è‡ªåŠ¨è¯†åˆ« IP
     Port = 5043,
     Check = new AgentServiceCheck
     {
-        HTTP = $"http://{hostIP}:5043/health",
+        HTTP = $"http://{_hostIP}:5043/health",
         Interval = TimeSpan.FromSeconds(10),
         Timeout = TimeSpan.FromSeconds(5),
         DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(30)
     }
 };
 
-// ×¢²áµ½ Consul
+// æ³¨å†Œåˆ° Consul
 await consulClient.Agent.ServiceRegister(registration);
 
 #endregion
 
-#region ÅäÖÃ Kestrel ·şÎñÆ÷¶Ë¿Ú
-// ÅäÖÃ Kestrel ·şÎñÆ÷¶Ë¿Ú
+#region é…ç½® Kestrel æœåŠ¡å™¨ç«¯å£
+// é…ç½® Kestrel æœåŠ¡å™¨ç«¯å£
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.Listen(IPAddress.Any, 5043);
@@ -308,39 +321,39 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 
 #endregion
 
-// ÅäÖÃ¹ıÂËÆ÷
+// é…ç½®è¿‡æ»¤å™¨
 builder.Services.AddControllers(options =>
 {
-    // Ìí¼ÓÓÃ»§ÊÚÈ¨¹ıÂËÆ÷
+    // æ·»åŠ ç”¨æˆ·æˆæƒè¿‡æ»¤å™¨
     options.Filters.Add<UserAuthorizeFilter>();
-    // Ìí¼Ó AES ¼ÓÃÜ²Ù×÷¹ıÂËÆ÷
+    // æ·»åŠ  AES åŠ å¯†æ“ä½œè¿‡æ»¤å™¨
     //options.Filters.Add<AESEncryptionActionFilter>();
 }).AddNewtonsoftJson(options =>
 {
 
 
-    // ĞŞ¸ÄÊ±¼äµÄĞòÁĞ»¯·½Ê½
+    // ä¿®æ”¹æ—¶é—´çš„åºåˆ—åŒ–æ–¹å¼
     options.SerializerSettings.Converters.Add(new FixedDateTimeConverter());
-    // ºöÂÔÑ­»·ÒıÓÃ
+    // å¿½ç•¥å¾ªç¯å¼•ç”¨
     // options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-    // ÎÒÃÇ½« NullValueHandling ÉèÖÃÎª Ignore£¬±íÊ¾ÔÚĞòÁĞ»¯Ê±ºöÂÔ null Öµ¡£Èç¹ûÄúÏ£Íû½« null ÖµĞòÁĞ»¯Îª JSON ×Ö·û´® "null"£¬Ôò¿ÉÒÔ½«ÆäÉèÖÃÎª Include¡£
+    // æˆ‘ä»¬å°† NullValueHandling è®¾ç½®ä¸º Ignoreï¼Œè¡¨ç¤ºåœ¨åºåˆ—åŒ–æ—¶å¿½ç•¥ null å€¼ã€‚å¦‚æœæ‚¨å¸Œæœ›å°† null å€¼åºåˆ—åŒ–ä¸º JSON å­—ç¬¦ä¸² "null"ï¼Œåˆ™å¯ä»¥å°†å…¶è®¾ç½®ä¸º Includeã€‚
     options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
 }); ;
 
 var app = builder.Build();
-app.UseCors("AppCors"); // ÅäÖÃ CORS ²ßÂÔ
-// ÖĞ¼ä¼şÅäÖÃ
+app.UseCors("AppCors"); // é…ç½® CORS ç­–ç•¥
+// ä¸­é—´ä»¶é…ç½®
 if (app.Environment.IsDevelopment())
 {
-    app.UseOpenApi(); // Éú³É OpenAPI ÎÄµµ
-    app.UseSwaggerUi3(); // Ê¹ÓÃ NSwag µÄ Swagger UI
+    // app.UseOpenApi(); // ç”Ÿæˆ OpenAPI æ–‡æ¡£
+    // app.UseSwaggerUi3(); // ä½¿ç”¨ NSwag çš„ Swagger UI
 }
 
-app.UseHttpsRedirection(); // ÆôÓÃ HTTPS ÖØ¶¨Ïò
+app.UseHttpsRedirection(); // å¯ç”¨ HTTPS é‡å®šå‘
 
-app.UseAuthentication(); // ÆôÓÃÈÏÖ¤ÖĞ¼ä¼ş
-app.UseAuthorization(); // ÆôÓÃÊÚÈ¨ÖĞ¼ä¼ş
+app.UseAuthentication(); // å¯ç”¨è®¤è¯ä¸­é—´ä»¶
+app.UseAuthorization(); // å¯ç”¨æˆæƒä¸­é—´ä»¶
 
-app.MapControllers(); // Ó³Éä¿ØÖÆÆ÷Â·ÓÉ
+app.MapControllers(); // æ˜ å°„æ§åˆ¶å™¨è·¯ç”±
 
-app.Run(); // ÔËĞĞÓ¦ÓÃ³ÌĞò
+app.Run(); // è¿è¡Œåº”ç”¨ç¨‹åº

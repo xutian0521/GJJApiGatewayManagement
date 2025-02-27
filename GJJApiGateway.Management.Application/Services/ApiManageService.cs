@@ -173,7 +173,7 @@ namespace GJJApiGateway.Management.Application.Services
             foreach (var app in appsExist)
             {
                 app.TokenVersion += 1; // 增加Token版本号
-                var srtJson = JwtHelper.EncryptApi(app.ApplicationId, app.ApplicationName, string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
+                var srtJson = JwtHelper.EncryptApi(app.Id, app.ApplicationName, string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
                 app.JwtToken = srtJson;
             }
 
