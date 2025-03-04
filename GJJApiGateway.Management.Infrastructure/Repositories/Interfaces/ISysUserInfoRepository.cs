@@ -11,5 +11,8 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
     {
         Task<SysUserInfo> GetUserByNameAsync(int? id, string userName);
         Task<int> UpdateAsync(SysUserInfo sysUserInfo);
+        Task<SysUserInfo> FindByUsernameAsync(string userName);
+        Task<bool> ExistsByUsernameAsync(string userName);
+        
     }
 }

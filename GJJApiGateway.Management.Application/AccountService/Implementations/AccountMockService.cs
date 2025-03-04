@@ -1,24 +1,32 @@
 ﻿using AutoMapper;
+using GJJApiGateway.Management.Application.AccountService.Commands;
 using GJJApiGateway.Management.Application.AccountService.DTOs;
 using GJJApiGateway.Management.Application.AccountService.Interfaces;
+using GJJApiGateway.Management.Application.AccountService.Queries;
+using GJJApiGateway.Management.Application.Module.Validation;
 using GJJApiGateway.Management.Application.Shared.DTOs;
 using GJJApiGateway.Management.Common.Utilities;
-using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
-using GJJApiGateway.Management.Model.Entities;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace GJJApiGateway.Management.Application.AccountService.Implementations
 {
     public class AccountMockService: IAccountService
     {
-        private readonly ISysUserInfoRepository _sysUserInfoRepository;
+        private readonly IUserInfoCommand _userInfoCommand;
+        private readonly IUserInfoQuery _userInfoQuery;
+        private readonly IUserNameCheckModule _userNameCheckModule;
         private readonly IMapper _mapper;
         static IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
-        public AccountMockService(ISysUserInfoRepository sysUserInfoRepository,
+        public AccountMockService(
+            IUserInfoCommand userInfoCommand, 
+            IUserInfoQuery userInfoQuery,
+            IUserNameCheckModule userNameCheckModule,
             IMapper mapper)
         {
-            _sysUserInfoRepository= sysUserInfoRepository;
+            _userInfoCommand= userInfoCommand;
+            _userInfoQuery = userInfoQuery;
+            _userNameCheckModule = userNameCheckModule;
             _mapper = mapper;
         }
         public async Task<ServiceResult<A_LoginResponseDto>> UserLoginAsync(string userName,
@@ -31,37 +39,44 @@ namespace GJJApiGateway.Management.Application.AccountService.Implementations
             //{
             //    return ServiceResult<A_LoginResponseDto>.Fail("验证码不正确");
             //}
-            var user = await this.GetUserByNameAsync(0, userName);
-
-            if (user == null)
+            
+            // 1. 调用用户名校验模块进行校验
+            UserName_ValidationResult validation = await _userNameCheckModule.ValidateUserAsync(userName);
+            if (!validation.IsValid)
+            {
+                // 若校验失败，返回包含错误信息的结果，不继续后续流程
+                return ServiceResult<A_LoginResponseDto>.Fail(validation.ErrorMessage);
+            }
+            var userInfoDto =  await _userInfoQuery.GetUserByNameAsync(0, userName);
+            
+            if (userInfoDto == null)
             {
                 return ServiceResult<A_LoginResponseDto>.Fail("用户名不存在");
             }
 
-            string _pwd = EncryptionHelper.MD5Encoding(password, user.Salt);
-            if (!user.Password.Equals(_pwd))
+            string _pwd = EncryptionHelper.MD5Encoding(password, userInfoDto.Salt);
+            if (!userInfoDto.Password.Equals(_pwd))
             {
                 return ServiceResult<A_LoginResponseDto>.Fail("密码不正确");
             }
-                user.LastLoginTime = DateTime.Now;
-            var UserDb= _mapper.Map<SysUserInfo>(user);
-            int updateRow = await _sysUserInfoRepository.UpdateAsync(UserDb);
-            string userJson = System.Text.Json.JsonSerializer.Serialize(user);
+            userInfoDto.LastLoginTime = DateTime.Now;
+            int updateRow = await _userInfoCommand.UpdateUserInfoAsync(userInfoDto);
+            string userJson = System.Text.Json.JsonSerializer.Serialize(userInfoDto);
 
             const int expMin = 60 * 24 * 30;
             //const int expMin = 1;
             var exp = (DateTime.UtcNow.AddMinutes(expMin) - new DateTime(1970, 1, 1)).TotalSeconds;
-            var srtJson = JwtHelper.Encrypt(user.Id.ToString(), user.Name, user.RoleId, exp);
+            var srtJson = JwtHelper.Encrypt(userInfoDto.Id.ToString(), userInfoDto.Name, userInfoDto.RoleId, exp);
 
 
             A_LoginResponseDto dto = new A_LoginResponseDto()
             {
                 access_token = srtJson,
                 expires_in = expMin,
-                user_id = user.Id.ToString(),
-                user_name = user.Name,
-                role_id = user.RoleId,
-                real_name = user.RealName,
+                user_id = userInfoDto.Id.ToString(),
+                user_name = userInfoDto.Name,
+                role_id = userInfoDto.RoleId,
+                real_name = userInfoDto.RealName,
 
             };
             return ServiceResult<A_LoginResponseDto>.Success(dto);
@@ -121,20 +136,6 @@ namespace GJJApiGateway.Management.Application.AccountService.Implementations
             var base64 = Convert.ToBase64String(bytes);
             Console.WriteLine("成功！");
             return new { codeKey = codeKey, imageData = "data:image/jpeg;base64," + base64 };
-        }
-
-        /// <summary>
-        /// 根据用户名获取用户
-        /// </summary>
-        /// <param name="id">id</param>
-        /// <param name="userName">用户名</param>
-        /// <returns></returns>
-        public async Task<A_SysUserInfoDto> GetUserByNameAsync(int id, string userName)
-        {
-            var userDb = await _sysUserInfoRepository.GetUserByNameAsync(id, userName);
-            var user =_mapper.Map<A_SysUserInfoDto>(userDb);
-            return user;
-
         }
     }
 }

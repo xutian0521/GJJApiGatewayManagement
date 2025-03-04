@@ -44,7 +44,7 @@ namespace GJJApiGateway.Management.Api.Controllers.Account
         }
 
         /// <summary>
-        /// ��ȡͼ����֤��
+        /// 获取验证码
         /// </summary>
         /// <returns></returns>
         [AllowAnonymous]

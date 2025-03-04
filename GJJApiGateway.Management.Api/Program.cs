@@ -14,12 +14,14 @@ using GJJApiGateway.Management.Api.Controllers.Admin.Mappings;
 using GJJApiGateway.Management.Api.Controllers.APIAuth.Mappings;
 using Microsoft.Data.SqlClient;
 using GJJApiGateway.Management.Api.Filter;
+using GJJApiGateway.Management.Application.AccountService.Commands;
 using GJJApiGateway.Management.Application.AccountService.Implementations;
 using GJJApiGateway.Management.Application.AccountService.Interfaces;
 using GJJApiGateway.Management.Application.AccountService.Mappings;
 using GJJApiGateway.Management.Application.APIAuthService.Implementations;
 using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
 using GJJApiGateway.Management.Application.APIAuthService.Mappings;
+using GJJApiGateway.Management.Application.Module.Validation;
 using GJJApiGateway.Management.Application.RuleService.Implementations;
 using GJJApiGateway.Management.Application.RuleService.Interfaces;
 using GJJApiGateway.Management.Application.RuleService.Mappings;
@@ -95,9 +97,11 @@ builder.Services.AddInfrastructureModule(builder.Configuration);
 builder.Services.AddCommonModule();
 
 // 注册业务层数据库等
+builder.Services.AddScoped<IUserNameCheckModule, UserNameCheckModule>();
 builder.Services.AddScoped<IApiApplicationService, ApiApplicationService>();
 builder.Services.AddScoped<IApiApplicationRepository, ApiApplicationRepository>();
 builder.Services.AddScoped<IApiApplicationMappingRepository, ApiApplicationMappingRepository>();
+builder.Services.AddScoped<IUserInfoCommand, UserInfoCommand>();
 
 builder.Services.AddScoped<ApiManageService>();
 builder.Services.AddScoped<IApiInfoRepository, ApiInfoRepository>();
