@@ -24,10 +24,7 @@ namespace GJJApiGateway.Management.Infrastructure
         {
         }
 
-        /// <summary>
-        /// 授权规则实体集，对应数据库中的 "Authorizations" 表。
-        /// </summary>
-        public DbSet<Authorization> Authorizations { get; set; }
+
         public DbSet<ApiInfo> ApiInfos { get; set; }
         public DbSet<ApiApplication> ApiApplications { get; set; }
         public DbSet<ApiApplicationMapping> ApiApplicationMappings { get; set; }
@@ -40,8 +37,6 @@ namespace GJJApiGateway.Management.Infrastructure
         /// <param name="modelBuilder">模型生成器。</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // 应用授权规则实体的映射配置
-            modelBuilder.ApplyConfiguration(new AuthorizationMapping());
 
             modelBuilder.ApplyConfiguration(new ApiInfoMapping());
             modelBuilder.ApplyConfiguration(new ApiApplicationMap());

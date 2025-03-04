@@ -21,4 +21,9 @@
     <ProjectReference Include="..\GJJApiGateway.Management.Application\GJJApiGateway.Management.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Shared\DTOs\" />
+    <Folder Include="Controllers\Shared\Mappings\" />
+  </ItemGroup>
+
 </Project>

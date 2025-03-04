@@ -1,24 +1,28 @@
 
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using GJJApiGateway.Management.Application.Mapping;
 using GJJApiGateway.Management.Application.Extensions;
-using GJJApiGateway.Management.Application.Services;
 using GJJApiGateway.Management.Infrastructure.Repositories;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
-using GJJApiGateway.Management.Application.Interfaces;
-using GJJApiGateway.Management.Api.Mappings;
 using Consul;
 using System.Net;
-using System.Net.Sockets;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Data;
+using GJJApiGateway.Management.Api.Controllers.Account.Mappings;
+using GJJApiGateway.Management.Api.Controllers.Admin.Mappings;
+using GJJApiGateway.Management.Api.Controllers.APIAuth.Mappings;
 using Microsoft.Data.SqlClient;
 using GJJApiGateway.Management.Api.Filter;
-using Newtonsoft.Json.Serialization;
+using GJJApiGateway.Management.Application.AccountService.Implementations;
+using GJJApiGateway.Management.Application.AccountService.Interfaces;
+using GJJApiGateway.Management.Application.AccountService.Mappings;
+using GJJApiGateway.Management.Application.APIAuthService.Implementations;
+using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
+using GJJApiGateway.Management.Application.APIAuthService.Mappings;
+using GJJApiGateway.Management.Application.RuleService.Implementations;
+using GJJApiGateway.Management.Application.RuleService.Interfaces;
+using GJJApiGateway.Management.Application.RuleService.Mappings;
 using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,21 +42,22 @@ string _jaegerHostHTTP = "http://192.168.2.188:4318--";
 string _seqHostHTTP = "http://192.168.2.188:5341/ingest/otlp/v1/traces--";
 string _seqHostLog = "http://192.168.2.188:5341/ingest/otlp/v1/logs--";
 // 允许所有地址访问，支持不同服务器部署
-var _hostIP = "192.168.2.101";
+var _hostIP = "192.168.2.103";
 //读取配置中心
 _consulHost = builder.Configuration["ConsulHost"];
 _jaegerHostgRPC = builder.Configuration["JaegerHostgRPC"];
 _jaegerHostHTTP = builder.Configuration["JaegerHostHTTP"];
 _seqHostHTTP = builder.Configuration["SeqHostHTTP"];
 _seqHostLog = builder.Configuration["SeqHostLog"];
-//_hostIP = builder.Configuration["LocalIP"];
+_hostIP = builder.Configuration["LocalIP"];
+int _hostPort = 5043;
 #endregion
 
 
 
 
 
-Console.WriteLine($"当前主机 IP: {_hostIP}");
+Console.WriteLine($"当前主机 IP: {_hostIP}:{_hostPort}");
 
 #region 配置 CORS
 
@@ -73,9 +78,15 @@ builder.Services.AddCors(options => options.AddPolicy("AppCors", policy =>
 builder.Services.AddControllers();
 
 // 配置 AutoMapper，指定映射配置文件所在的程序集
-builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile));
-builder.Services.AddAutoMapper(typeof(ControllerMappingProfile));
 
+
+builder.Services.AddAutoMapper(typeof(C_AccountControllerMappingProfile));
+builder.Services.AddAutoMapper(typeof(C_APIAuthControllerMappingProfile));
+builder.Services.AddAutoMapper(typeof(C_AdminControllerMappingProfile));
+
+builder.Services.AddAutoMapper(typeof(A_AccountServiceMappingProfile));
+builder.Services.AddAutoMapper(typeof(A_APIAuthServiceMappingProfile));
+builder.Services.AddAutoMapper(typeof(A_RuleServiceMappingProfile));
 
 
 // 注册应用层模块，包括认证、限流和路径管理
@@ -144,30 +155,32 @@ builder.Services.AddOpenTelemetry()
         .AddAspNetCoreInstrumentation(options =>  // 收集 HTTP 请求数据
         {
             options.RecordException = true; // 确保记录 HTTP 请求中的异常
-            // options.Filter = (httpContext) =>
-            // {
-            //     // 过滤掉不需要记录的 URL 或请求路径
-            //     var path = httpContext.Request.Path.Value;
-            //     return !path.StartsWith("/v1/health/service/") &&
-            //            !path.StartsWith("/v1/catalog/nodes") &&
-            //            !path.StartsWith("/notifications/v2") &&
-            //            !path.StartsWith("/health") &&
-            //            !path.StartsWith("/v1/agent");
-            // };
+            options.Filter = (httpContext) =>
+            {
+                // 过滤掉不需要记录的 URL 或请求路径
+                var path = httpContext.Request.Path.Value;
+                return //!path.StartsWith("/v1/health/service/") &&
+                    //!path.StartsWith("/v1/catalog/nodes") &&
+                    //!path.StartsWith("/notifications/v2") &&
+                    !path.StartsWith("/health") 
+                    //&&!path.StartsWith("/v1/agent")
+                    ;
+            };
         })
         .AddHttpClientInstrumentation(options =>  // 收集 HttpClient 数据
         {
             options.RecordException = true; // 确保记录 HTTP 客户端请求的异常
                                             // 过滤掉不需要的 HTTP 请求
-            // options.FilterHttpRequestMessage = httpRequestMessage =>
-            // {
-            //     // 假设要排除某些路径，如健康检查相关的路径
-            //     return !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/health/service/") &&
-            //            !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/catalog/nodes") &&
-            //            !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/notifications/v2") &&
-            //            !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/health") &&
-            //             !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/agent");
-            // };
+            options.FilterHttpRequestMessage = httpRequestMessage =>
+            {
+                // 假设要排除某些路径，如健康检查相关的路径
+                return //!httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/health/service/") &&
+                    //!httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/catalog/nodes") &&
+                    //!httpRequestMessage.RequestUri.AbsoluteUri.Contains("/notifications/v2") &&
+                    !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/health") 
+                    //&& !httpRequestMessage.RequestUri.AbsoluteUri.Contains("/v1/agent")
+                    ;
+            };
         })
         .AddSqlClientInstrumentation(options =>
         {
@@ -297,10 +310,10 @@ var registration = new AgentServiceRegistration
     ID = $"{serviceName}-1",
     Name = $"{serviceName}",
     Address = _hostIP, // 让 Consul 自动识别 IP
-    Port = 5043,
+    Port = _hostPort,
     Check = new AgentServiceCheck
     {
-        HTTP = $"http://{_hostIP}:5043/health",
+        HTTP = $"http://{_hostIP}:{_hostPort}/health",
         Interval = TimeSpan.FromSeconds(10),
         Timeout = TimeSpan.FromSeconds(5),
         DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(30)

@@ -1,0 +1,23 @@
+using AutoMapper;
+using GJJApiGateway.Management.Application.AccountService.DTOs;
+using GJJApiGateway.Management.Application.APIAuthService.DTOs;
+using GJJApiGateway.Management.Application.RuleService.DTOs;
+using GJJApiGateway.Management.Common.DTOs;
+using GJJApiGateway.Management.Model.Entities;
+using GJJApiGateway.Management.Model.ViewModels;
+
+namespace GJJApiGateway.Management.Application.APIAuthService.Mappings;
+
+public class A_APIAuthServiceMappingProfile: Profile
+{
+    public A_APIAuthServiceMappingProfile()
+    {
+        CreateMap<ApiInfo, A_ApiInfoDto>().ReverseMap();
+
+        CreateMap<ApiApplication, A_ApiApplicationDto>().ReverseMap();
+        CreateMap<A_ApiConfigurationDto, ApiInfo>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        CreateMap<ApiInfo, CommonApiInfoDto>().ReverseMap();
+    }
+}

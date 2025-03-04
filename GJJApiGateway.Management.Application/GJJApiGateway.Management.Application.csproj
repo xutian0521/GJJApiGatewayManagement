@@ -15,5 +15,16 @@
 	<PackageReference Include="AutoMapper" Version="12.0.0" />
 	<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
 </ItemGroup>
+<ItemGroup>
+  <Folder Include="AccountService\Commands\" />
+  <Folder Include="AccountService\Queries\" />
+  <Folder Include="APIAuthService\Commands\" />
+  <Folder Include="APIAuthService\Queries\" />
+  <Folder Include="Module\Feature\" />
+  <Folder Include="Module\Validation\" />
+  <Folder Include="RuleService\Commands\" />
+  <Folder Include="RuleService\Queries\" />
+  <Folder Include="Shared\Mappings\" />
+</ItemGroup>
 
 </Project>

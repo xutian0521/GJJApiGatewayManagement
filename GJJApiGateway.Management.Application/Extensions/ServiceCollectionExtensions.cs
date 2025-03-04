@@ -1,5 +1,5 @@
-﻿using GJJApiGateway.Management.Application.Interfaces;
-using GJJApiGateway.Management.Application.Services;
+﻿using GJJApiGateway.Management.Application.APIAuthService.Implementations;
+using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,9 +37,7 @@ namespace GJJApiGateway.Management.Application.Extensions
             // 配置数据库上下文，使用 SQL Server 数据库
             services.AddDbContext<ManagementDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-
-            // 注册授权仓储接口及其实现
-            services.AddScoped<IAuthorizationRepository, AuthorizationRepository>();
+            
 
             // 注册其他仓储和基础设施服务
             // 例如：

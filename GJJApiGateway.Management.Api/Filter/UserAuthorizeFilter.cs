@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
-using GJJApiGateway.Management.Api.ViewModel;
+using GJJApiGateway.Management.Api.Controllers.Shared.ViewModels;
 
 namespace GJJApiGateway.Management.Api.Filter
 {

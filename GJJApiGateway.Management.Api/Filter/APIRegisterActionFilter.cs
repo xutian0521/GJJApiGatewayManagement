@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
 using Microsoft.Extensions.Caching.Memory;
-using GJJApiGateway.Management.Api.ViewModel;
-using GJJApiGateway.Management.Application.Interfaces;
+using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
 
 namespace GJJApiGateway.Management.Api.Filter
 {
