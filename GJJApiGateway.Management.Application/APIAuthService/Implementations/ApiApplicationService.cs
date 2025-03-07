@@ -36,7 +36,7 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
 
                 var pageResult = new PageResult<A_ApiApplicationDto>
                 {
-                    Items = applicationDtos,
+                    List = applicationDtos,
                     Total = total
                 };
 

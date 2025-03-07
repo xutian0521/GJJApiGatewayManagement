@@ -22,9 +22,12 @@ using GJJApiGateway.Management.Application.APIAuthService.Implementations;
 using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
 using GJJApiGateway.Management.Application.APIAuthService.Mappings;
 using GJJApiGateway.Management.Application.Module.Validation;
+using GJJApiGateway.Management.Application.RuleService.Commands;
 using GJJApiGateway.Management.Application.RuleService.Implementations;
 using GJJApiGateway.Management.Application.RuleService.Interfaces;
 using GJJApiGateway.Management.Application.RuleService.Mappings;
+using GJJApiGateway.Management.Application.RuleService.Queries;
+using GJJApiGateway.Management.Infrastructure.Configuration;
 using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,11 +105,14 @@ builder.Services.AddScoped<IApiApplicationService, ApiApplicationService>();
 builder.Services.AddScoped<IApiApplicationRepository, ApiApplicationRepository>();
 builder.Services.AddScoped<IApiApplicationMappingRepository, ApiApplicationMappingRepository>();
 builder.Services.AddScoped<IUserInfoCommand, UserInfoCommand>();
+builder.Services.AddScoped<IRuleCommand, RuleCommand>();
+builder.Services.AddScoped<IRuleQuery, RuleQuery>();
+builder.Services.AddScoped<PasswordSettings, PasswordSettings>();
 
 builder.Services.AddScoped<ApiManageService>();
 builder.Services.AddScoped<IApiInfoRepository, ApiInfoRepository>();
 builder.Services.AddScoped<IAccountService, AccountMockService>();
-builder.Services.AddScoped<ISysUserInfoRepository, SysUserInfoRepository>();
+builder.Services.AddScoped<ISysUserInfoRepository, UserInfoRepository>();
 builder.Services.AddScoped<IRuleService, RuleService>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 

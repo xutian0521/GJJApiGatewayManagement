@@ -1,27 +1,19 @@
 ﻿using GJJApiGateway.Management.Model.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using GJJApiGateway.Management.Infrastructure.DTOs;
 
 namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
 {
-    //public interface IDataDictionaryRepository
-    //{
-    //    // Get data dictionary list by type and value
-    //    Task<List<SysDataDictionary>> GetDataDictionaryListByType(string type, string val);
+    public interface IDataDictionaryRepository
+    {
+        Task<DataPageResult<SysDataDictionaryDto>> GetPagedDataDictionariesAsync(int pageIndex, int pageSize);
+        Task<List<SysDataDictionaryDto>> GetDataDictionaryTreeAsync(int rootPId);
+        Task<List<SysDataDictionary>> GetEnumTypeListAsync();
+        Task<SysDataDictionaryDto> GetDataDictionaryByIdAsync(int id);
+        Task<int> InsertDataDictionaryAsync(SysDataDictionary dataDictionary);
+        Task<int> UpdateDataDictionaryAsync(SysDataDictionary dataDictionary);
 
-    //    // Get a single data dictionary by type
-    //    Task<SysDataDictionary> GetDataDictionaryByType(string type);
-
-    //    // Get data dictionary tree list by parent ID
-    //    Task<List<SysDataDictionary>> GetDataDictionaryTreeList(int pId);
-
-    //    // Get data dictionary list by parent (for root level)
-    //    Task<List<SysDataDictionary>> GetDataDictionaryListByParent();
-
-    //    // Add or modify a data dictionary entry
-    //    Task<(int code, string message)> AddOrModifyDictionary(P_AddOrModifyDictionary p);
-
-    //    // Delete a data dictionary entry
-    //    Task<(int code, string message)> DeleteEnum(int id);
-    //}
+        Task<int> DeleteDataDictionaryAsync(SysDataDictionary dataDictionary);
+    }
 }

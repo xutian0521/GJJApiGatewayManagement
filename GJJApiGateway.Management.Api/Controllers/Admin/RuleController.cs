@@ -21,6 +21,7 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
             _ruleService = ruleService;
             _mapper = mapper;
         }
+        //---------------------------------------------------菜单-----------------------------------------------------
 
         // Menu Methods
         [HttpGet("MenuTreeList")]
@@ -79,136 +80,141 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
             return new s_ApiResult<string>(result.Code, result.Message, "");
         }
 
-        //[HttpGet("LoadModifyRoleMenu")]
-        //public async Task<s_ApiResult<List<MenuDTO>>> LoadModifyRoleMenu(int roleId)
-        //{
-        //    var list = await _ruleService.GetSysMenus(roleId, 0, false);
-        //    var result = _mapper.Map<List<MenuDTO>>(list);
-        //    return new s_ApiResult<List<MenuDTO>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
-        //}
+        [HttpGet("LoadModifyRoleMenu")]
+        public async Task<s_ApiResult<List<SysMenuVM>>> LoadModifyRoleMenu(int roleId)
+        {
+            var list = await _ruleService.GetSysMenusAsync(roleId, 0, false);
+            var result = _mapper.Map<List<SysMenuVM>>(list);
+            return new s_ApiResult<List<SysMenuVM>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
+        }
 
-        //[HttpPost("SettingRoleMenu")]
-        //public async Task<s_ApiResult> SettingRoleMenu([FromBody] P_SettingRoleMenu model)
-        //{
-        //    var result = await _ruleService.SettingRoleMenuAsync(model.roleId, model.menuIds);
-        //    return new s_ApiResult(result.code, result.message);
-        //}
+        [HttpPost("SettingRoleMenu")]
+        public async Task<s_ApiResult<string>> SettingRoleMenu([FromBody] C_SettingRoleMenuDto model)
+        {
+            var result = await _ruleService.SettingRoleMenuAsync(model.roleId, model.menuIds);
+            return new s_ApiResult<string>(result.Code, result.Message, "");
+        }
 
-        //// User Methods
-        //[HttpGet("UserList")]
-        //public async Task<s_ApiResult<Pager<UserDTO>>> UserList(string userName, string roleId, int pageIndex = 1, int pageSize = 10)
-        //{
-        //    var list = await _ruleService.UserList(userName, roleId, pageIndex, pageSize);
-        //    var result = _mapper.Map<Pager<UserDTO>>(list);
-        //    return new s_ApiResult<Pager<UserDTO>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
-        //}
 
-        //[HttpPost("AddOrModifyUser")]
-        //public async Task<s_ApiResult> AddOrModifyUser(P_AddOrModifyUser p)
-        //{
-        //    var r = await _ruleService.AddOrModifyUser(p.id, p.userName, p.password, p.roleId, p.realName, p.remark);
-        //    return new s_ApiResult(r.code, r.message);
-        //}
+        //---------------------------------------------------用户-----------------------------------------------------
+        
+        // User Methods
+        [HttpGet("UserList")]
+        public async Task<s_ApiResult<Pager<C_SysMenuDto>>> UserList(string userName, string roleId, int pageIndex = 1, int pageSize = 10)
+        {
+            var list = await _ruleService.UserListAsync(userName, roleId, pageIndex, pageSize);
+            var result = _mapper.Map<Pager<C_SysMenuDto>>(list);
+            return new s_ApiResult<Pager<C_SysMenuDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
+        }
 
-        //[HttpGet("DelateUser")]
-        //public async Task<s_ApiResult> DeleteUser(int id)
-        //{
-        //    var r = await _ruleService.DeleteUser(id);
-        //    return new s_ApiResult(r.code, r.message);
-        //}
+        [HttpPost("AddOrModifyUser")]
+        public async Task<s_ApiResult<string>> AddOrModifyUser(C_AddOrModifyUserDto p)
+        {
+            var r = await _ruleService.AddOrModifyUserAsync(p.id, p.userName, p.password, p.roleId, p.realName, p.remark);
+            return new s_ApiResult<string>(r.Code, r.Message, "");
+        }
 
-        //[HttpGet("LoadModifyUserInfo")]
-        //public async Task<s_ApiResult<UserDTO>> LoadModifyUserInfo(string id)
-        //{
-        //    var r = await _ruleService.LoadModifyUserInfoAsync(id);
-        //    var result = _mapper.Map<UserDTO>(r.user);
-        //    return new s_ApiResult<UserDTO>(r.code, r.message, result);
-        //}
+        [HttpGet("DelateUser")]
+        public async Task<s_ApiResult<string>> DeleteUser(int id)
+        {
+            var r = await _ruleService.DeleteUserAsync(id);
+            return new s_ApiResult<string>(r.Code, r.Message, "");
+        }
 
-        //// Role Methods
-        //[HttpGet("LoadModifyRoleInfo")]
-        //public async Task<s_ApiResult<RoleDTO>> LoadModifyRoleInfo(int id)
-        //{
-        //    var r = await _ruleService.LoadModifyRoleInfo(id);
-        //    var result = _mapper.Map<RoleDTO>(r.role);
-        //    return new s_ApiResult<RoleDTO>(r.code, r.message, result);
-        //}
+        [HttpGet("LoadModifyUserInfo")]
+        public async Task<s_ApiResult<C_SysUserInfoDto>> LoadModifyUserInfo(string id)
+        {
+            var r = await _ruleService.LoadModifyUserInfoAsync(id);
+            var result = _mapper.Map<C_SysUserInfoDto>(r.Data);
+            return new s_ApiResult<C_SysUserInfoDto>(r.Code, r.Message, result);
+        }
 
-        //[HttpGet("RoleList")]
-        //public async Task<s_ApiResult<Pager<RoleDTO>>> RoleList(string roleName, int pageIndex = 1, int pageSize = 10)
-        //{
-        //    var r = await _ruleService.RoleListAsync(roleName, pageIndex, pageSize);
-        //    var result = _mapper.Map<Pager<RoleDTO>>(r.list);
-        //    return new s_ApiResult<Pager<RoleDTO>>(r.code, r.message, result);
-        //}
+        //---------------------------------------------------角色-----------------------------------------------------
+        
+        // Role Methods
+        [HttpGet("LoadModifyRoleInfo")]
+        public async Task<s_ApiResult<C_SysRoleDto>> LoadModifyRoleInfo(int id)
+        {
+            var r = await _ruleService.LoadModifyRoleInfoAsync(id);
+            var result = _mapper.Map<C_SysRoleDto>(r.Data);
+            return new s_ApiResult<C_SysRoleDto>(r.Code, r.Message, result);
+        }
 
-        //[HttpPost("AddOrModifyRole")]
-        //public async Task<s_ApiResult> AddOrModifyRole(P_AddOrModifyRole p)
-        //{
-        //    var r = await _ruleService.AddOrModifyRoleAsync(p.id, p.roleName, p.remark);
-        //    return new s_ApiResult(r.code, r.message);
-        //}
+        [HttpGet("RoleList")]
+        public async Task<s_ApiResult<Pager<C_SysRoleDto>>> RoleList(string roleName, int pageIndex = 1, int pageSize = 10)
+        {
+            var r = await _ruleService.RoleListAsync(roleName, pageIndex, pageSize);
+            var result = _mapper.Map<Pager<C_SysRoleDto>>(r.Data);
+            return new s_ApiResult<Pager<C_SysRoleDto>>(r.Code, r.Message, result);
+        }
 
-        //[HttpPost("DeleteRole")]
-        //public async Task<s_ApiResult> DeleteRole([FromForm] int id)
-        //{
-        //    var r = await _ruleService.DeleteRoleAsync(id);
-        //    return new s_ApiResult(r.code, r.message);
-        //}
+        [HttpPost("AddOrModifyRole")]
+        public async Task<s_ApiResult<string>> AddOrModifyRole(C_AddOrModifyRoleDto p)
+        {
+            var r = await _ruleService.AddOrModifyRoleAsync(p.id, p.roleName, p.remark);
+            return new s_ApiResult<string>(r.Code, r.Message, "");
+        }
 
-        //// Data Dictionary Methods
-        //[HttpGet("GetDataDictionaryListByType")]
-        //public async Task<s_ApiResult<List<DataDictionaryDTO>>> GetDataDictionaryListByType(string type, string val = "")
-        //{
-        //    var list = await _ruleService.GetDataDictionaryListByType(type, val);
-        //    var result = _mapper.Map<List<DataDictionaryDTO>>(list);
-        //    return new s_ApiResult<List<DataDictionaryDTO>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
-        //}
+        [HttpPost("DeleteRole")]
+        public async Task<s_ApiResult<string>> DeleteRole([FromForm] int id)
+        {
+            var r = await _ruleService.DeleteRoleAsync(id);
+            return new s_ApiResult<string>(r.Code, r.Message, "");
+        }
+        
+        //---------------------------------------------------字典-----------------------------------------------------
 
-        //[HttpGet("GetDataDictionaryByType")]
-        //public async Task<s_ApiResult<DataDictionaryDTO>> GetDataDictionaryByType(string type)
-        //{
-        //    var list = await _ruleService.GetDataDictionaryByType(type);
-        //    var result = _mapper.Map<DataDictionaryDTO>(list);
-        //    return new s_ApiResult<DataDictionaryDTO>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
-        //}
+// 数据字典分页列表
+    [HttpGet("DictEnumList")]
+    public async Task<s_ApiResult<Pager<C_SysDataDictionaryDto>>> DictEnumList(int pageIndex = 1, int pageSize = 10)
+    {
+        var list = await _ruleService.DictListAsync(pageIndex, pageSize);
+        var result = _mapper.Map<Pager<C_SysDataDictionaryDto>>(list);
+        return new s_ApiResult<Pager<C_SysDataDictionaryDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
+    }
 
-        //[HttpGet("GetDataDictionaryTreeList")]
-        //public async Task<s_ApiResult<List<DataDictionaryDTO>>> GetDataDictionaryTreeList()
-        //{
-        //    var list = await _ruleService.DataDictionaryTreeList(0);
-        //    var result = _mapper.Map<List<DataDictionaryDTO>>(list);
-        //    return new s_ApiResult<List<DataDictionaryDTO>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
-        //}
+    // 递归获取字典树列表
+    [HttpGet("DictTreeList")]
+    public async Task<s_ApiResult<List<C_SysDataDictionaryDto>>> DictTreeList()
+    {
+        var list = await _ruleService.DictTreeListAsync(0);
+        var result = _mapper.Map<List<C_SysDataDictionaryDto>>(list);
+        return new s_ApiResult<List<C_SysDataDictionaryDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
+    }
 
-        //[HttpGet("GetDataDictionaryListByParent")]
-        //public async Task<s_ApiResult<List<DataDictionaryDTO>>> GetDataDictionaryListByParent()
-        //{
-        //    var list = await _ruleService.GetDataDictionaryListByParent();
-        //    var result = _mapper.Map<List<DataDictionaryDTO>>(list);
-        //    return new s_ApiResult<List<DataDictionaryDTO>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
-        //}
+    // 获取数据字典类型（PId=0）
+    [HttpGet("EnumTypeList")]
+    public async Task<s_ApiResult<List<C_SysDataDictionaryDto>>> EnumTypeList()
+    {
+        var list = await _ruleService.EnumTypeListAsync();
+        var result = _mapper.Map<List<C_SysDataDictionaryDto>>(list);
+        return new s_ApiResult<List<C_SysDataDictionaryDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
+    }
 
-        //[HttpGet("LoadModifyEnumInfoById")]
-        //public async Task<s_ApiResult<DataDictionaryDTO>> LoadModifyEnumInfoById(int id)
-        //{
-        //    var r = await _ruleService.LoadModifyEnumInfoById(id);
-        //    var result = _mapper.Map<DataDictionaryDTO>(r.@enum);
-        //    return new s_ApiResult<DataDictionaryDTO>(r.code, r.message, result);
-        //}
+    // 载入修改枚举字典
+    [HttpGet("LoadModifyEnumInfo")]
+    public async Task<s_ApiResult<C_SysDataDictionaryDto>> LoadModifyEnumInfo(int id)
+    {
+        var entity = await _ruleService.LoadModifyEnumInfoAsync(id);
+        var result = _mapper.Map<C_SysDataDictionaryDto>(entity.Data);
+        return new s_ApiResult<C_SysDataDictionaryDto>(entity.Code, entity.Message, result);
+    }
 
-        //[HttpPost("AddOrModifyDictionary")]
-        //public async Task<s_ApiResult> AddOrModifyDictionary(P_AddOrModifyDictionary p)
-        //{
-        //    var result = await _ruleService.AddOrModifyDictionary(p);
-        //    return new s_ApiResult(result.code, result.message);
-        //}
+    // 新增或修改枚举字典
+    [HttpPost("AddOrModifyEnum")]
+    public async Task<s_ApiResult<string>> AddOrModifyEnum([FromBody] C_AddOrModifyDataDictionaryDto p)
+    {
+        var result = await _ruleService.AddOrModifyEnumAsync(
+            p.id, p.dataKey, p.dataKeyAlias, p.pId, p.dataValue, p.dataDescription, p.sortId);
+        return new s_ApiResult<string>(result.Code, result.Message, "");
+    }
 
-        //[HttpGet("DeleteEnum")]
-        //public async Task<s_ApiResult> DeleteEnum(int id)
-        //{
-        //    var result = await _ruleService.DeleteEnumAsync(id);
-        //    return new s_ApiResult(result.code, result.message);
-        //}
+    // 删除枚举字典
+    [HttpPost("DeleteEnum")]
+    public async Task<s_ApiResult<string>> DeleteEnum([FromBody] int id)
+    {
+        var result = await _ruleService.DeleteEnumAsync(id);
+        return new s_ApiResult<string>(result.Code, result.Message, "");
+    }
     }
 }

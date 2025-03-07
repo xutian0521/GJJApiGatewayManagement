@@ -1,6 +1,6 @@
 using GJJApiGateway.Management.Application.AccountService.DTOs;
 
-namespace GJJApiGateway.Management.Application.AccountService.Queries;
+namespace GJJApiGateway.Management.Application.Shared.Queries;
 
 public interface IUserInfoQuery
 {

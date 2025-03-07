@@ -2,7 +2,7 @@ using AutoMapper;
 using GJJApiGateway.Management.Application.AccountService.DTOs;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 
-namespace GJJApiGateway.Management.Application.AccountService.Queries;
+namespace GJJApiGateway.Management.Application.Shared.Queries;
 
 public class UserInfoQuery: IUserInfoQuery
 {

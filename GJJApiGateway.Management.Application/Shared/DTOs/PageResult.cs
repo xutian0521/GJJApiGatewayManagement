@@ -8,7 +8,7 @@
         /// <summary>
         /// 分页数据列表
         /// </summary>
-        public List<T> Items { get; set; }
+        public List<T> List { get; set; }
         /// <summary>
         /// 总记录数
         /// </summary>

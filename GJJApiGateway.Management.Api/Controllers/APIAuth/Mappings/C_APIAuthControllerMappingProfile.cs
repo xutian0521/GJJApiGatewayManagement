@@ -36,7 +36,7 @@ public class C_APIAuthControllerMappingProfile: Profile
     {
         public Pager<TDestination> Convert(PageResult<TSource> source, Pager<TDestination> destination, ResolutionContext context)
         {
-            var list = context.Mapper.Map<IEnumerable<TDestination>>(source.Items);
+            var list = context.Mapper.Map<IEnumerable<TDestination>>(source.List);
             return new Pager<TDestination>
             {
                 List = list.ToList(),

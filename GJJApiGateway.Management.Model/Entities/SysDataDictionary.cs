@@ -12,51 +12,42 @@ namespace GJJApiGateway.Management.Model.Entities
     public class SysDataDictionary
     {
         /// <summary>
-        /// ID
+        /// id
         /// </summary>
-        public int ID { get; set; }
+        public int Id { get; set; }
         /// <summary>
-        /// 枚举类型
+        /// 父级id
         /// </summary>
-        public string? TYPEKEY { get; set; }
+        public int PId { get; set; }
+        /// <summary>
+        /// 字典key
+        /// </summary>
+        public string? DataKey { get; set; }
+        /// <summary>
+        /// 字典key别名
+        /// </summary>
+        public string? DataKeyAlias { get; set; }
+        /// <summary>
+        /// 字典值
+        /// </summary>
+        public string? DataValue { get; set; }
+        /// <summary>
+        /// 数据描述
+        /// </summary>
+        public string? DataDescription { get; set; }
+        /// <summary>
+        /// 排序号
+        /// </summary>
+        public int SortId { get; set; }
+        /// <summary>
+        /// 表记录创建时间
+        /// </summary>
+        public DateTime CreateTime { get; set; }
+        /// <summary>
+        /// 字典更新时间
+        /// </summary>
+        public DateTime UpdateTime { get; set; }
 
-        /// <summary>
-        /// 枚举类型名称
-        /// </summary>
-        public string? TYPELABEL { get; set; }
-
-        /// <summary>
-        /// 值
-        /// </summary>
-        public string? VALUE { get; set; }
-
-        /// <summary>
-        /// 值对应的解释
-        /// </summary>
-        public string? VALUESTR { get; set; }
-
-        /// <summary>
-        /// 排序
-        /// </summary>
-        public int SORTID { get; set; }
-        /// <summary>
-        /// 描述
-        /// </summary>
-        public string? DESCRIPTION { get; set; }
-
-        /// <summary>
-        /// 前端是否可获取到 0:获取不到 1:可以获取到
-        /// </summary>
-        public int QDSHOW { get; set; }
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string? REMARK { get; set; }
-
-        /// <summary>
-        /// 城市网点编号
-        /// </summary>
-        public string? CITYCENTNO { get; set; }
+        
     }
 }
