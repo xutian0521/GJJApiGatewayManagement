@@ -59,7 +59,8 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         /// </summary>
         public async Task<int> UpdateAsync(SysUserInfo sysUserInfo)
         {
-            _context.SysUserInfos.Update(sysUserInfo);
+            _context.SysUserInfos.Attach(sysUserInfo);
+            _context.Entry(sysUserInfo).State = EntityState.Modified; // 标记为已修改
             return await _context.SaveChangesAsync();
         }
         

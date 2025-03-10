@@ -1,3 +1,4 @@
+using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Model.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +20,7 @@ public class RoleMenuRepository : IRoleMenuRepository
     {
         return await _context.SysRoleMenus
             .Where(rm => rm.ROLEID == roleId)
+            .AsNoTracking()
             .ToListAsync();
     }
 

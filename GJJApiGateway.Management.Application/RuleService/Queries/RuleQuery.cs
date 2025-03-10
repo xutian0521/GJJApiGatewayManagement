@@ -10,6 +10,7 @@ namespace GJJApiGateway.Management.Application.RuleService.Queries;
 
 public class RuleQuery: IRuleQuery
 {
+    private readonly IMenuRepository _menuRepository;
     private readonly IRoleMenuRepository _roleMenuRepository;
     private readonly ISysUserInfoRepository  _sysUserInfoRepository;
     private readonly IRoleRepository _roleRepository;
@@ -20,18 +21,28 @@ public class RuleQuery: IRuleQuery
     private readonly IMapper _mapper;
     
     public RuleQuery(
+        IMenuRepository menuRepository,
         IRoleMenuRepository roleMenuRepository,
         ISysUserInfoRepository sysUserInfoRepository,
         IRoleRepository roleRepository,
         IDataDictionaryRepository dataDictionaryRepository,
         IMapper mapper)
     {
+        _menuRepository = menuRepository;
         _roleMenuRepository = roleMenuRepository;
         _sysUserInfoRepository = sysUserInfoRepository;
         _roleRepository = roleRepository;
         _dataDictionaryRepository = dataDictionaryRepository;
         _mapper = mapper;
     }
+    
+    public async Task<List<A_SysMenuDto>> GetMenusAsync(int pId, bool isFilterDisabledMenu)
+    {
+        var menus = await _menuRepository.GetMenusAsync(pId, isFilterDisabledMenu);
+        var menuDtos = _mapper.Map<List<A_SysMenuDto>>(menus);
+        return menuDtos;
+    }
+    
     public async Task<List<A_SysRoleMenuDto>> GetRoleMenusByRoleIdAsync(int roleId)
     {
         var roleMenus = await _roleMenuRepository.GetRoleMenusByRoleIdAsync(roleId);

@@ -70,6 +70,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
             var pagedList = await orderedQuery
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
+                .AsNoTracking()
                 .ToListAsync();
 
             // 修正点5：返回类型修正
@@ -134,7 +135,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
             var list = await _context.SysDataDictionarys
                 .Where(d => d.PId == 0) // 只获取根级字典项
                 .OrderBy(d => d.SortId)
-                
+                .AsNoTracking()
                 .ToListAsync();
 
             return list;
@@ -162,6 +163,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                         .Select(p => p.DataKey)
                         .FirstOrDefault() // 获取父级 DataKey
                 })
+                .AsNoTracking()
                 .FirstOrDefaultAsync();
 
             return dictionary;
@@ -182,7 +184,9 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         /// </summary>
         public async Task<int> UpdateDataDictionaryAsync(SysDataDictionary dataDictionary)
         {
-            _context.SysDataDictionarys.Update(dataDictionary);
+            _context.SysDataDictionarys.Attach(dataDictionary);
+            _context.Entry(dataDictionary).State = EntityState.Modified; // 标记为已修改
+
             return await _context.SaveChangesAsync();
         }
         

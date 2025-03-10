@@ -16,7 +16,7 @@ public class C_AddOrModifyUserDto
     /// <summary>
     /// 密码
     /// </summary>
-    public string password{ get; set; }
+    public string? password{ get; set; }
     /// <summary>
     /// 角色id
     /// </summary>
@@ -24,9 +24,9 @@ public class C_AddOrModifyUserDto
     /// <summary>
     /// 真实姓名
     /// </summary>
-    public string realName{ get; set; }
+    public string? realName{ get; set; }
     /// <summary>
     /// 备注
     /// </summary>
-    public string remark { get; set; }
+    public string? remark { get; set; }
 }

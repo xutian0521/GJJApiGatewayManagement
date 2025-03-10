@@ -15,17 +15,23 @@ public class C_AdminControllerMappingProfile: Profile
 {
     public C_AdminControllerMappingProfile()
     {
-        CreateMap<A_SysMenuDto, C_SysMenuDto>().ReverseMap()    // 正向映射：A_SysMenuDto -> SysMenu
+        CreateMap<A_SysMenuDto, C_SysMenuDto>().ReverseMap()
             .ForMember(dest => dest.Name, opt
-                => opt.MapFrom(src => src.title)) // 将 DTO 的 Name 映射到实体的 Title
-            .ReverseMap() // 反向映射：SysMenu -> A_SysMenuDto
+                => opt.MapFrom(src => src.title)) 
+            .ReverseMap()
             .ForMember(dest => dest.title, opt 
-                => opt.MapFrom(src => src.Name)); // 将实体的 Title 映射回 DTO 的 Name;
+                => opt.MapFrom(src => src.Name)); 
+        CreateMap<PageResult<A_SysMenuDto>, Pager<C_SysMenuDto>>()
+            .ForMember(dest => dest.List, opt => opt.MapFrom(src => src.List)) // 让 AutoMapper 处理 List<> 内部映射
+            .ReverseMap()
+            .ForMember(dest => dest.List, opt => opt.MapFrom(src => src.List));
+        
         CreateMap<A_SysMenuDto, SysMenuVM>().ReverseMap();
-        CreateMap<A_SysUserInfoDto, C_SysUserInfoDto>().ReverseMap();
         CreateMap<A_SysRoleDto, C_SysRoleDto>().ReverseMap();
-
-        
-        
+        CreateMap<PageResult<A_SysRoleDto>, Pager<C_SysRoleDto>>().ReverseMap();
+        CreateMap<A_SysDataDictionaryDto, C_SysDataDictionaryDto>().ReverseMap();
+        CreateMap<PageResult<A_SysDataDictionaryDto>, Pager<C_SysDataDictionaryDto>>().ReverseMap();
+        CreateMap<A_SysUserInfoDto, C_SysUserInfoDto>().ReverseMap();
+        CreateMap<PageResult<A_SysUserInfoDto>, Pager<C_SysUserInfoDto>>().ReverseMap();
     }   
 }

@@ -27,9 +27,9 @@ namespace GJJApiGateway.Management.Api.Controllers.Account
         [HttpPost("Login")]
         public async Task<s_ApiResult<LoginResponseVM>> UserLogin([FromBody] C_LoginRequestDto request)
         {
-            _logger.LogInformation($"用户开始登录【1】：用户名 {request.Username} started.");
+            _logger.LogInformation($"用户开始登录【1】：用户名 {request.userName} started.");
             
-            var result = await _accountService.UserLoginAsync(request.Username,request.Password,request.code, request.codeKey);
+            var result = await _accountService.UserLoginAsync(request.userName,request.password,request.code, request.codeKey);
             var viewModel = _mapper.Map<LoginResponseVM>(result.Data);
             _logger.LogInformation($"用户开始登录-结束【2】：REAL_NAME {viewModel.real_name} end.");
             return new s_ApiResult<LoginResponseVM>(result.Code, result.Message, viewModel);

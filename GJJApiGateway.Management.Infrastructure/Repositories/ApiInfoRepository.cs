@@ -97,7 +97,9 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         /// </summary>
         public async Task<bool> UpdateApiInfoAsync(ApiInfo apiInfo)
         {
-            _context.ApiInfos.Update(apiInfo);
+            _context.ApiInfos.Attach(apiInfo);
+            _context.Entry(apiInfo).State = EntityState.Modified; // 标记为已修改
+
             var rowsAffected = await _context.SaveChangesAsync();
             return rowsAffected > 0;
         }
@@ -123,6 +125,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         public async Task<ApiInfo> GetApiInfoByIdAsync(int apiId)
         {
             return await _context.ApiInfos
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == apiId);
         }
 
@@ -144,7 +147,8 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 .Where(app => _context.ApiApplicationMappings
                     .Any(mapping => mapping.ApiId == apiId && mapping.ApplicationId == app.Id));
 
-            return await query.ToListAsync();
+            return await query.AsNoTracking()
+                .ToListAsync();
         }
 
         // 获取与指定 ApplicationId 相关的 API 列表
@@ -154,7 +158,8 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 .Where(api => _context.ApiApplicationMappings
                     .Any(mapping => mapping.ApplicationId == applicationId && mapping.ApiId == api.Id));
 
-            return await query.ToListAsync();
+            return await query.AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task InsertApiApplicationMappingsAsync(IEnumerable<ApiApplicationMapping> mappings)
@@ -180,6 +185,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 .OrderBy(a => a.Id) // Modify according to sorting requirement
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -188,11 +194,13 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         {
             return await _context.ApiInfos
                 .Where(api => apiIds.Contains(api.Id))
+                .AsNoTracking()
                 .ToListAsync();
         }
         public async Task<IEnumerable<ApiInfo>> GetAllApiInfosAsync()
         {
-            return await _context.ApiInfos.ToListAsync();
+            return await _context.ApiInfos.AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<int> BulkInsertApiInfosAsync(IEnumerable<ApiInfo> apiInfos)

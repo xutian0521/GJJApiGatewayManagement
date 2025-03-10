@@ -27,6 +27,7 @@ using GJJApiGateway.Management.Application.RuleService.Implementations;
 using GJJApiGateway.Management.Application.RuleService.Interfaces;
 using GJJApiGateway.Management.Application.RuleService.Mappings;
 using GJJApiGateway.Management.Application.RuleService.Queries;
+using GJJApiGateway.Management.Application.Shared.Queries;
 using GJJApiGateway.Management.Infrastructure.Configuration;
 using Newtonsoft.Json;
 
@@ -107,6 +108,7 @@ builder.Services.AddScoped<IApiApplicationMappingRepository, ApiApplicationMappi
 builder.Services.AddScoped<IUserInfoCommand, UserInfoCommand>();
 builder.Services.AddScoped<IRuleCommand, RuleCommand>();
 builder.Services.AddScoped<IRuleQuery, RuleQuery>();
+builder.Services.AddScoped<IUserInfoQuery, UserInfoQuery>();
 builder.Services.AddScoped<PasswordSettings, PasswordSettings>();
 
 builder.Services.AddScoped<ApiManageService>();
@@ -115,6 +117,9 @@ builder.Services.AddScoped<IAccountService, AccountMockService>();
 builder.Services.AddScoped<ISysUserInfoRepository, UserInfoRepository>();
 builder.Services.AddScoped<IRuleService, RuleService>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+builder.Services.AddScoped<IRoleMenuRepository, RoleMenuRepository>();
+builder.Services.AddScoped<IDataDictionaryRepository, DataDictionaryRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 
 

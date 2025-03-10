@@ -100,15 +100,15 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
         
         // User Methods
         [HttpGet("UserList")]
-        public async Task<s_ApiResult<Pager<C_SysMenuDto>>> UserList(string userName, string roleId, int pageIndex = 1, int pageSize = 10)
+        public async Task<s_ApiResult<Pager<C_SysUserInfoDto>>> UserList(string userName = "", string roleId = "", int pageIndex = 1, int pageSize = 10)
         {
-            var list = await _ruleService.UserListAsync(userName, roleId, pageIndex, pageSize);
-            var result = _mapper.Map<Pager<C_SysMenuDto>>(list);
-            return new s_ApiResult<Pager<C_SysMenuDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
+            var data = await _ruleService.UserListAsync(userName, roleId, pageIndex, pageSize);
+            var result = _mapper.Map<Pager<C_SysUserInfoDto>>(data.Data);
+            return new s_ApiResult<Pager<C_SysUserInfoDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
         }
 
         [HttpPost("AddOrModifyUser")]
-        public async Task<s_ApiResult<string>> AddOrModifyUser(C_AddOrModifyUserDto p)
+        public async Task<s_ApiResult<string>> AddOrModifyUser([FromBody] C_AddOrModifyUserDto p)
         {
             var r = await _ruleService.AddOrModifyUserAsync(p.id, p.userName, p.password, p.roleId, p.realName, p.remark);
             return new s_ApiResult<string>(r.Code, r.Message, "");
@@ -141,7 +141,7 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
         }
 
         [HttpGet("RoleList")]
-        public async Task<s_ApiResult<Pager<C_SysRoleDto>>> RoleList(string roleName, int pageIndex = 1, int pageSize = 10)
+        public async Task<s_ApiResult<Pager<C_SysRoleDto>>> RoleList(string roleName= "", int pageIndex = 1, int pageSize = 10)
         {
             var r = await _ruleService.RoleListAsync(roleName, pageIndex, pageSize);
             var result = _mapper.Map<Pager<C_SysRoleDto>>(r.Data);
@@ -149,7 +149,7 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
         }
 
         [HttpPost("AddOrModifyRole")]
-        public async Task<s_ApiResult<string>> AddOrModifyRole(C_AddOrModifyRoleDto p)
+        public async Task<s_ApiResult<string>> AddOrModifyRole([FromBody] C_AddOrModifyRoleDto p)
         {
             var r = await _ruleService.AddOrModifyRoleAsync(p.id, p.roleName, p.remark);
             return new s_ApiResult<string>(r.Code, r.Message, "");

@@ -36,6 +36,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         {
             return await _context.ApiApplicationMappings
                 .Where(m => applicationIds.Contains(m.ApplicationId))
+                .AsNoTracking()
                 .ToListAsync();
         }
 

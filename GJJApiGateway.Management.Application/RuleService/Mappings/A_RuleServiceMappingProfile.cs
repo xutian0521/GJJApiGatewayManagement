@@ -15,10 +15,12 @@ public class A_RuleServiceMappingProfile: Profile
     {
         CreateMap<A_SysMenuDto, SysMenu>().ReverseMap();
         CreateMap<A_SysDataDictionaryDto, SysDataDictionaryDto>().ReverseMap();
+        CreateMap<A_SysRoleDto, SysRole>().ReverseMap();
         CreateMap<PageResult<A_SysRoleDto>, DataPageResult<SysRole>>().ReverseMap();
-        
         CreateMap<PageResult<A_SysDataDictionaryDto>, DataPageResult<SysDataDictionaryDto>>().ReverseMap();
-        
+        CreateMap<A_SysUserInfoDto, SysUserInfo>().ReverseMap();
+        CreateMap<PageResult<A_SysUserInfoDto>, DataPageResult<SysUserInfo>>().ReverseMap();
+        CreateMap<A_SysRoleMenuDto, SysRoleMenu>().ReverseMap();
         
     }
 

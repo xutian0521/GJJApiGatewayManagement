@@ -25,6 +25,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 .Where(a => string.IsNullOrEmpty(description) || a.Description.Contains(description))
                 .Skip((page - 1) * limit)
                 .Take(limit)
+                .AsNoTracking()
                 .ToListAsync();
         }
         // 获取应用程序列表
@@ -32,6 +33,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         {
             return await _context.ApiApplications
                 .Where(app => applicationIds.Contains(app.Id))
+                .AsNoTracking()
                 .ToListAsync();
         }
 

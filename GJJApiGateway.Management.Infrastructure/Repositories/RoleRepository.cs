@@ -45,6 +45,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 .OrderBy(r => r.ID) // 避免 SQL Server 的分页异常
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
+                .AsNoTracking()
                 .ToListAsync();
 
             return new DataPageResult<SysRole>
@@ -58,7 +59,8 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         /// </summary>
         public async Task<int> UpdateRoleAsync(SysRole role)
         {
-            _context.SysRoles.Update(role);
+            _context.SysRoles.Attach(role);
+            _context.Entry(role).State = EntityState.Modified; // 标记为已修改
             return await _context.SaveChangesAsync();
         }
         

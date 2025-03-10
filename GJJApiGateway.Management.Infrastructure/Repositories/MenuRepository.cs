@@ -29,7 +29,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 query = query.Where(m => m.ISENABLE == 1); // 过滤禁用的菜单
             }
 
-            return await query.OrderBy(m => m.SORTID).ToListAsync();
+            return await query.OrderBy(m => m.SORTID).AsNoTracking().ToListAsync();
         }
 
         public async Task<List<SysMenu>> GetSysMenusAsync(int roleId, int pId, bool isFilterDisabledMenu)
@@ -47,6 +47,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
             // 查询并返回排序后的菜单列表
             var menuList = await query.OrderBy(x => x.m.SORTID)
                                       .Select(x => x.m)  // 只选择菜单数据
+                                      .AsNoTracking()
                                       .ToListAsync();
 
             return menuList;
@@ -56,7 +57,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         public async Task<SysMenu> GetMenuByIdAsync(int id)
         {
             return await _context.SysMenus
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
         }
 
         /// <summary>
@@ -64,7 +65,8 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         /// </summary>
         public async Task<List<SysMenu>> GetParentMenuEnumsAsync()
         {
-            var query = _context.SysMenus.Where(u => u.PID == 0);
+            var query = _context.SysMenus.AsNoTracking()
+                .Where(u => u.PID == 0);
             return await query.ToListAsync();
         }
         public async Task<int> AddMenuAsync(SysMenu menu)
@@ -75,7 +77,8 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
 
         public async Task<int> UpdateMenuAsync(SysMenu menu)
         {
-            _context.SysMenus.Update(menu);
+            _context.SysMenus.Attach(menu);
+            _context.Entry(menu).State = EntityState.Modified; // 标记为已修改
             return await _context.SaveChangesAsync();
         }
 
@@ -101,6 +104,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         {
             return await _context.SysMenus
                 .Where(x => x.PID == parentId)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -131,6 +135,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         {
             var menu = await _context.SysMenus
                                      .Where(u => u.ID == id)
+                                     .AsNoTracking()
                                      .FirstOrDefaultAsync();
             return menu;
         }

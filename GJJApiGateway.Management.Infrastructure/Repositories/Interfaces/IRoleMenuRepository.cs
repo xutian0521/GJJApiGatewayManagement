@@ -1,6 +1,6 @@
 using GJJApiGateway.Management.Model.Entities;
 
-namespace GJJApiGateway.Management.Infrastructure.Repositories;
+namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 
 public interface IRoleMenuRepository
 {
