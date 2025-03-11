@@ -15,9 +15,6 @@ public class A_APIAuthServiceMappingProfile: Profile
         CreateMap<ApiInfo, A_ApiInfoDto>().ReverseMap();
 
         CreateMap<ApiApplication, A_ApiApplicationDto>().ReverseMap();
-        CreateMap<A_ApiConfigurationDto, ApiInfo>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-
         CreateMap<ApiInfo, CommonApiInfoDto>().ReverseMap();
     }
 }

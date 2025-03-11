@@ -16,7 +16,6 @@ public class C_APIAuthControllerMappingProfile: Profile
     public C_APIAuthControllerMappingProfile()
     {
         CreateMap<A_ApiInfoDto, ApiInfoVM>().ReverseMap();
-        CreateMap<A_ApiConfigurationDto, C_ApiConfigurationDto>().ReverseMap();
         CreateMap<A_ApiAuthorizationRequestDto, C_ApiAuthorizationRequestDto>().ReverseMap();
         CreateMap<A_ApiInfoDto, C_ApiInfoDto>().ReverseMap();
         CreateMap<A_ApiApplicationDto, C_ApiApplicationDto>().ReverseMap();

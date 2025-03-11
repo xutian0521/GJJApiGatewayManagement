@@ -81,13 +81,13 @@ namespace GJJApiGateway.Management.Api.Controllers.APIAuth
         /// 根据 API ID 更新 API 的配置信息。
         /// </summary>
         /// <param name="apiId">要配置的 API 的 ID。</param>
-        /// <param name="configuration">包含 API 配置信息的 DTO。</param>
+        /// <param name="c_apiInfoDto">包含 API 配置信息的 DTO。</param>
         /// <returns>操作结果，包含成功或错误消息和更新后的 API ViewModel。</returns>
         [HttpPost("Configure/{apiId}")]
-        public async Task<s_ApiResult<ApiInfoVM>> ConfigureApi(int apiId, [FromBody] C_ApiConfigurationDto configurationDto)
+        public async Task<s_ApiResult<ApiInfoVM>> ConfigureApi(int apiId, [FromBody] C_ApiInfoDto c_apiInfoDto)
         {
-            var a_configurationDto = _mapper.Map<A_ApiConfigurationDto>(configurationDto);
-            var result = await _apiService.ConfigureApi(apiId, a_configurationDto);
+            var a_apiInfoDto = _mapper.Map<A_ApiInfoDto>(c_apiInfoDto);
+            var result = await _apiService.ConfigureApi(apiId, a_apiInfoDto);
             var viewModel = _mapper.Map<ApiInfoVM>(result.Data);
             return new s_ApiResult<ApiInfoVM>(result.Code, result.Message, viewModel);
         }

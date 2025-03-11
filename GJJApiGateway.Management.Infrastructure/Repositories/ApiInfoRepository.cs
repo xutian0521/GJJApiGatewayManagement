@@ -95,28 +95,28 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         /// <summary>
         /// 更新API信息
         /// </summary>
-        public async Task<bool> UpdateApiInfoAsync(ApiInfo apiInfo)
+        public async Task<int> UpdateApiInfoAsync(ApiInfo apiInfo)
         {
             _context.ApiInfos.Attach(apiInfo);
             _context.Entry(apiInfo).State = EntityState.Modified; // 标记为已修改
 
             var rowsAffected = await _context.SaveChangesAsync();
-            return rowsAffected > 0;
+            return rowsAffected;
         }
 
         /// <summary>
         /// 删除API信息
         /// </summary>
-        public async Task<bool> DeleteApiInfoAsync(int apiId)
+        public async Task<int> DeleteApiInfoAsync(int apiId)
         {
             var apiInfo = await _context.ApiInfos.FindAsync(apiId);
             if (apiInfo != null)
             {
                 _context.ApiInfos.Remove(apiInfo);
                 var rowsAffected = await _context.SaveChangesAsync();
-                return rowsAffected > 0;
+                return rowsAffected;
             }
-            return false;
+            return 0;
         }
 
         /// <summary>
@@ -129,19 +129,19 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
                 .FirstOrDefaultAsync(a => a.Id == apiId);
         }
 
-        public async Task<bool> UpdateApiStatusAsync(int apiId, string newStatus)
+        public async Task<int> UpdateApiStatusAsync(int apiId, string newStatus)
         {
             var api = await _context.ApiInfos.FindAsync(apiId);
             if (api != null)
             {
                 api.Status = newStatus;
-                return await _context.SaveChangesAsync() > 0;
+                return await _context.SaveChangesAsync();
             }
-            return false;
+            return 0;
         }
 
         // 获取与指定 ApiId 相关的应用程序列表
-        public async Task<IEnumerable<ApiApplication>> GetApplicationsByApiIdAsync(int apiId)
+        public async Task<List<ApiApplication>> GetApplicationsByApiIdAsync(int apiId)
         {
             var query = _context.ApiApplications
                 .Where(app => _context.ApiApplicationMappings
@@ -152,7 +152,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         }
 
         // 获取与指定 ApplicationId 相关的 API 列表
-        public async Task<IEnumerable<ApiInfo>> GetApisByApplicationIdAsync(int applicationId)
+        public async Task<List<ApiInfo>> GetApisByApplicationIdAsync(int applicationId)
         {
             var query = _context.ApiInfos
                 .Where(api => _context.ApiApplicationMappings
@@ -190,7 +190,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         }
 
         // 获取API信息列表
-        public async Task<IEnumerable<ApiInfo>> GetApiInfoListAsync(IEnumerable<int> apiIds)
+        public async Task<IEnumerable<ApiInfo>> GetApiInfoListByIdsAsync(IEnumerable<int> apiIds)
         {
             return await _context.ApiInfos
                 .Where(api => apiIds.Contains(api.Id))

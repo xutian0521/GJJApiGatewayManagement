@@ -11,20 +11,20 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
         Task<ApiApplication> GetApiApplicationWithJwtAsync(int applicationId);
         Task<List<ApiInfo>> GetAuthorizedApisAsync(int applicationId);
         Task<IEnumerable<ApiInfo>> GetApiInfoAsync(string apiChineseName, string description, string businessIdentifier, string apiSource, string apiPath, int pageIndex, int pageSize);
-        Task<IEnumerable<ApiInfo>> GetApiInfoListAsync(IEnumerable<int> apiIds);
+        Task<IEnumerable<ApiInfo>> GetApiInfoListByIdsAsync(IEnumerable<int> apiIds);
         Task<int> GetApiInfoCountAsync(string apiChineseName, string description, string businessIdentifier, string apiSource, string apiPath);
 
-        Task<bool> DeleteApiInfoAsync(int apiId);
+        Task<int> DeleteApiInfoAsync(int apiId);
         Task<ApiInfo> GetApiInfoByIdAsync(int apiId);
 
         Task<IEnumerable<ApiInfo>> GetApiInfoListAsync(string apiChineseName, string description, string businessIdentifier, string apiSource, string apiPath, int pageIndex, int pageSize);
-        Task<bool> UpdateApiStatusAsync(int apiId, string newStatus);
-        Task<IEnumerable<ApiApplication>> GetApplicationsByApiIdAsync(int apiId);
-        Task<IEnumerable<ApiInfo>> GetApisByApplicationIdAsync(int applicationId);
+        Task<int> UpdateApiStatusAsync(int apiId, string newStatus);
+        Task<List<ApiApplication>> GetApplicationsByApiIdAsync(int apiId);
+        Task<List<ApiInfo>> GetApisByApplicationIdAsync(int applicationId);
         Task InsertApiApplicationMappingsAsync(IEnumerable<ApiApplicationMapping> mappings);
 
         Task<int> CreateApiInfoAsync(ApiInfo apiInfo);
-        Task<bool> UpdateApiInfoAsync(ApiInfo apiInfo);
+        Task<int> UpdateApiInfoAsync(ApiInfo apiInfo);
         Task<IEnumerable<ApiInfo>> GetAllApiInfosAsync();
         Task<int> BulkInsertApiInfosAsync(IEnumerable<ApiInfo> apiInfos);
 

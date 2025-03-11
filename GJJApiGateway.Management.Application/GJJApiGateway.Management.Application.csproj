@@ -17,8 +17,6 @@
 </ItemGroup>
 <ItemGroup>
   <Folder Include="AccountService\Queries\" />
-  <Folder Include="APIAuthService\Commands\" />
-  <Folder Include="APIAuthService\Queries\" />
   <Folder Include="Module\Feature\" />
   <Folder Include="Shared\Commands\" />
   <Folder Include="Shared\Mappings\" />

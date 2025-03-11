@@ -81,11 +81,11 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         }
 
         // 更新应用程序信息
-        public async Task<bool> UpdateApplicationsAsync(IEnumerable<ApiApplication> applications)
+        public async Task<int> UpdateApplicationsAsync(IEnumerable<ApiApplication> applications)
         {
             _context.ApiApplications.UpdateRange(applications);
             int row = await _context.SaveChangesAsync();
-            return row > 0;
+            return row ;
         }
 
         public async Task<string> GetAuthorizedTokenAsync(int applicationId)

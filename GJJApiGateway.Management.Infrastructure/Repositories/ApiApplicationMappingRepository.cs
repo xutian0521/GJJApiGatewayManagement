@@ -26,7 +26,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories
         }
 
         // 删除旧的授权映射
-        public async Task<int> DeleteOldMappingsAsync(IEnumerable<ApiApplicationMapping> mappings)
+        public async Task<int> DeleteOldMappingsAsync(List<ApiApplicationMapping> mappings)
         {
             _context.ApiApplicationMappings.RemoveRange(mappings);
             return await _context.SaveChangesAsync();

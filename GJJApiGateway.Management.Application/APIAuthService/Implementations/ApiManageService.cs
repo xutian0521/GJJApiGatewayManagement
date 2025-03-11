@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using AutoMapper;
+using GJJApiGateway.Management.Application.APIAuthService.Commands;
 using GJJApiGateway.Management.Application.APIAuthService.DTOs;
+using GJJApiGateway.Management.Application.APIAuthService.Queries;
 using GJJApiGateway.Management.Application.Shared.DTOs;
 using GJJApiGateway.Management.Common.DTOs;
 using GJJApiGateway.Management.Common.Utilities;
@@ -14,28 +16,26 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
     /// </summary>
     public class ApiManageService
     {
-        private readonly IApiInfoRepository _apiInfoRepository;
-        private readonly IApiApplicationRepository _apiApplicationRepository;
-        private readonly IApiApplicationMappingRepository  _apiApplicationMappingRepository;
+        private readonly IAuthQuery  _authQuery;
+        private readonly IAuthCommand _authCommand;
         private readonly IMapper _mapper;
 
         /// <summary>
         /// 构造函数，注入仓储接口和 AutoMapper 映射器
         /// </summary>
         public ApiManageService(
-            IApiInfoRepository apiInfoRepository,
-            IApiApplicationRepository apiApplicationRepository,
-            IApiApplicationMappingRepository apiApplicationMappingRepository,
+
+            IAuthCommand authCommand,
+            IAuthQuery  authQuery,
             IMapper mapper)
         {
-            _apiInfoRepository = apiInfoRepository;
-            _apiApplicationRepository = apiApplicationRepository;
-            _apiApplicationMappingRepository = apiApplicationMappingRepository;
+            _authCommand = authCommand;
+            _authQuery = authQuery;
             _mapper = mapper;
         }
 
         /// <summary>
-        /// 获取分页的API信息列表（业务层分页DTO PageResult<ApiInfoDto>）
+        /// 获取分页的API信息列表
         /// </summary>
         public async Task<ServiceResult<PageResult<A_ApiInfoDto>>> ApiList(
             string? apiChineseName,
@@ -46,9 +46,9 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
             int pageIndex,
             int pageSize)
         {
-            int total = await _apiInfoRepository.GetApiInfoCountAsync(apiChineseName, description, businessIdentifier, apiSource, apiPath);
-            var apiInfos = await _apiInfoRepository.GetApiInfoListAsync(apiChineseName, description, businessIdentifier, apiSource, apiPath, pageIndex, pageSize);
-            var apiInfoDtos = _mapper.Map<List<A_ApiInfoDto>>(apiInfos);
+            int total = await _authQuery.GetApiInfoCountAsync(apiChineseName, description, businessIdentifier, apiSource, apiPath);
+            var apiInfoDtos = await _authQuery.GetApiInfoListAsync(
+                apiChineseName, description, businessIdentifier, apiSource, apiPath, pageIndex, pageSize);
 
             var pageResult = new PageResult<A_ApiInfoDto>
             {
@@ -64,19 +64,16 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
         /// <summary>
         /// 根据给定的配置更新指定的API信息
         /// </summary>
-        public async Task<ServiceResult<A_ApiInfoDto>> ConfigureApi(int apiId, A_ApiConfigurationDto configuration)
+        public async Task<ServiceResult<A_ApiInfoDto>> ConfigureApi(int apiId, A_ApiInfoDto apiInfoDto)
         {
-            var apiInfo = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
-            if (apiInfo == null)
+            var apiInfoDto_before = await _authQuery.GetApiInfoByIdAsync(apiId);
+            if (apiInfoDto_before == null)
             {
-
-                var poco = _mapper.Map<ApiInfo>(configuration);
-                poco.CreateTime = DateTime.Now;
-                int id = await _apiInfoRepository.CreateApiInfoAsync(poco);
+                apiInfoDto.CreateTime = DateTime.Now;
+                int id = await _authCommand.CreateApiInfoAsync(apiInfoDto);
                 if (id > 0)
                 {
-                    var createdApi = await _apiInfoRepository.GetApiInfoByIdAsync(id);
-                    var createdApiDto = _mapper.Map<A_ApiInfoDto>(createdApi);
+                    var createdApiDto = await _authQuery.GetApiInfoByIdAsync(id);
                     return ServiceResult<A_ApiInfoDto>.Success(createdApiDto, "API创建成功。");
                 }
                 else
@@ -84,12 +81,10 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
                     return ServiceResult<A_ApiInfoDto>.Fail("API创建失败，未能插入数据。");
                 }
             }
-            _mapper.Map(configuration, apiInfo);
-            bool success = await _apiInfoRepository.UpdateApiInfoAsync(apiInfo);
-            if (success)
+            int row1 = await _authCommand.UpdateApiInfoAsync(apiInfoDto);
+            if (row1 > 0)
             {
-                var updatedApi = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
-                var updatedApiDto = _mapper.Map<A_ApiInfoDto>(updatedApi);
+                var updatedApiDto = await _authQuery.GetApiInfoByIdAsync(apiId);
                 return ServiceResult<A_ApiInfoDto>.Success(updatedApiDto, "API配置更新成功。");
             }
             else
@@ -103,12 +98,11 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
         /// </summary>
         public async Task<ServiceResult<A_ApiInfoDto>> GetApiByIdAsync(int apiId)
         {
-            var apiInfo = await _apiInfoRepository.GetApiInfoByIdAsync(apiId);
-            if (apiInfo == null)
+            var apiInfoDto = await _authQuery.GetApiInfoByIdAsync(apiId);
+            if (apiInfoDto == null)
             {
                 return ServiceResult<A_ApiInfoDto>.Fail("未找到指定的API信息。");
             }
-            var apiInfoDto = _mapper.Map<A_ApiInfoDto>(apiInfo);
             return ServiceResult<A_ApiInfoDto>.Success(apiInfoDto, "查询成功");
         }
 
@@ -118,24 +112,24 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
         public async Task<ServiceResult<string>> AuthorizeApisToApplications(List<int> apiIds, List<int> applicationIds, int? days = null)
         {
             // 验证API是否存在
-            var apisExist = await _apiInfoRepository.GetApiInfoListAsync(apiIds);
+            var apisExist = await _authQuery.GetApiInfoListByIdsAsync(apiIds);
             if (apisExist.Count() != apiIds.Count)
             {
                 return ServiceResult<string>.Fail("部分或全部指定的API不存在。");
             }
 
             // 验证应用程序是否存在
-            var appsExist = await _apiApplicationRepository.GetApplicationsByIdsAsync(applicationIds);
+            var appsExist = await _authQuery.GetApplicationsByIdsAsync(applicationIds);
             if (appsExist.Count() != applicationIds.Count)
             {
                 return ServiceResult<string>.Fail("部分或全部指定的应用程序不存在。");
             }
 
             // 获取现有的授权映射（应用程序当前已授权的API）
-            var existingMappings = await _apiApplicationMappingRepository.GetExistingMappingsByApplicationIdsAsync(applicationIds);
+            var existingMappings = await _authQuery.GetExistingMappingsByApplicationIdsAsync(applicationIds);
 
             // 生成新的授权映射
-            List<ApiApplicationMapping> newMappings = new List<ApiApplicationMapping>();
+            var newMappings = new List<A_ApiApplicationMappingDto>();
             foreach (var apiId in apiIds)
             {
                 foreach (var appId in applicationIds)
@@ -143,7 +137,7 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
                     // 如果当前授权映射中没有这条映射，说明是新的映射关系
                     if (!existingMappings.Any(m => m.ApiId == apiId && m.ApplicationId == appId))
                     {
-                        newMappings.Add(new ApiApplicationMapping
+                        newMappings.Add(new A_ApiApplicationMappingDto
                         {
                             ApiId = apiId,
                             ApplicationId = appId,
@@ -161,7 +155,8 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
             foreach (var app in appsExist)
             {
                 app.TokenVersion += 1; // 增加Token版本号
-                var srtJson = JwtHelper.EncryptApi(app.Id, app.ApplicationName, string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
+                var srtJson = JwtHelper.EncryptApi(app.Id, app.ApplicationName, 
+                    string.Join(",", apiIds), days?.ToString(), concatenatedApiPaths, app.AuthMethod, exp, app.TokenVersion);
                 app.JwtToken = srtJson;
             }
 
@@ -171,16 +166,16 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
                 .ToList();
 
             // 删除不再需要的授权映射
-            int row1 = await _apiApplicationMappingRepository.DeleteOldMappingsAsync(mappingsToDelete);
+            int row1 = await _authCommand.DeleteOldMappingsAsync(mappingsToDelete);
 
             // 插入新的授权映射
             if (newMappings.Any())
             {
-                int row2 = await _apiApplicationMappingRepository.InsertApiApplicationMappingsAsync(newMappings);
+                int row2 = await _authCommand.InsertApiApplicationMappingsAsync(newMappings);
             }
 
             // 更新应用程序信息
-            bool b1 = await _apiApplicationRepository.UpdateApplicationsAsync(appsExist);
+            int b1 = await _authCommand.UpdateApplicationsAsync(appsExist);
 
             return ServiceResult<string>.Success("API成功授权给指定的应用程序。", "授权成功");
         }
@@ -195,8 +190,8 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
         {
             try
             {
-                bool success = await _apiInfoRepository.UpdateApiStatusAsync(apiId, newStatus);
-                return success ? ServiceResult<string>.Success("API状态更新成功。", "更新成功")
+                int row = await _authCommand.UpdateApiStatusAsync(apiId, newStatus);
+                return row > 0 ? ServiceResult<string>.Success("API状态更新成功。", "更新成功")
                                : ServiceResult<string>.Fail("API状态更新失败。");
             }
             catch (Exception ex)
@@ -210,19 +205,18 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
         /// </summary>
         public async Task<ServiceResult<string>> DeleteApiAsync(int apiId)
         {
-            bool success = await _apiInfoRepository.DeleteApiInfoAsync(apiId);
-            return success ? ServiceResult<string>.Success("删除成功。", "删除成功")
+            int row = await _authCommand.DeleteApiInfoAsync(apiId);
+            return row > 0 ? ServiceResult<string>.Success("删除成功。", "删除成功")
                            : ServiceResult<string>.Fail("删除API失败。");
         }
 
         /// <summary>
         /// 获取指定API已授权的应用程序列表
         /// </summary>
-        public async Task<ServiceResult<IEnumerable<A_ApiApplicationDto>>> GetAuthorizedApplications(int apiId)
+        public async Task<ServiceResult<List<A_ApiApplicationDto>>> GetAuthorizedApplications(int apiId)
         {
-            var applications = await _apiInfoRepository.GetApplicationsByApiIdAsync(apiId);
-            var appDtos = _mapper.Map<List<A_ApiApplicationDto>>(applications);
-            return ServiceResult<IEnumerable<A_ApiApplicationDto>>.Success(appDtos, "查询成功");
+            var appDtos = await _authQuery.GetApplicationsByApiIdAsync(apiId);
+            return ServiceResult<List<A_ApiApplicationDto>>.Success(appDtos, "查询成功");
         }
 
         /// <summary>
@@ -230,8 +224,7 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
         /// </summary>
         public async Task<ServiceResult<IEnumerable<A_ApiInfoDto>>> GetAuthorizedApis(int applicationId)
         {
-            var apis = await _apiInfoRepository.GetApisByApplicationIdAsync(applicationId);
-            var apiDtos = _mapper.Map<IEnumerable<A_ApiInfoDto>>(apis);
+            var apiDtos = await _authQuery.GetApisByApplicationIdAsync(applicationId);
             return ServiceResult<IEnumerable<A_ApiInfoDto>>.Success(apiDtos, "查询成功");
         }
 
@@ -241,15 +234,15 @@ namespace GJJApiGateway.Management.Application.APIAuthService.Implementations
         public async Task<ServiceResult<string>> AutoRegisterApis()
         {
             // 从数据层获取所有已存在的 API 信息
-            IEnumerable<ApiInfo> existingApis = await _apiInfoRepository.GetAllApiInfosAsync();
+            var existingApis = await _authQuery.GetAllApiInfosAsync();
             var m_existingApis = _mapper.Map<IEnumerable<CommonApiInfoDto>>(existingApis);
             // 指定需要扫描的 Controller 命名空间（请根据实际情况修改）
             string targetNamespace = "GJJApiGateway.Management.Api.Controllers";
             // 调用 Common 层工具方法扫描，获取需要新增的 API 信息列表
             List<CommonApiInfoDto> m_addList = ApiRegistrationHelper.ScanControllersForApiInfo(m_existingApis, targetNamespace);
-            var addList = _mapper.Map<IEnumerable<ApiInfo>>(m_addList);
+            var addList = _mapper.Map<List<A_ApiInfoDto>>(m_addList);
             // 调用数据层方法批量插入新增的 API 信息
-            int row = await _apiInfoRepository.BulkInsertApiInfosAsync(addList);
+            int row = await _authCommand.BulkInsertApiInfosAsync(addList);
 
             if (row > 0)
             {

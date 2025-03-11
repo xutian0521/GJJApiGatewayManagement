@@ -10,7 +10,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
     public interface IApiApplicationMappingRepository
     {
         Task<int> InsertApiApplicationMappingsAsync(IEnumerable<ApiApplicationMapping> mappings);
-        Task<int> DeleteOldMappingsAsync(IEnumerable<ApiApplicationMapping> mappings);
+        Task<int> DeleteOldMappingsAsync(List<ApiApplicationMapping> mappings);
         Task<IEnumerable<ApiApplicationMapping>> GetExistingMappingsByApplicationIdsAsync(IEnumerable<int> applicationIds);
     }
 }

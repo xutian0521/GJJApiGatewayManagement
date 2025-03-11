@@ -16,7 +16,7 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
         Task<int> CreateApiApplicationAsync(ApiApplication application);
         Task<bool> DeleteApiApplicationAsync(int appId);
         Task<bool> UpdateApiApplicationAsync(int appId, ApiApplication application);
-        Task<bool> UpdateApplicationsAsync(IEnumerable<ApiApplication> applications);
+        Task<int> UpdateApplicationsAsync(IEnumerable<ApiApplication> applications);
         Task<string> GetAuthorizedTokenAsync(int applicationId);
         Task<IEnumerable<ApiInfo>> GetAuthorizedApiListAsync(int applicationId);
     }
