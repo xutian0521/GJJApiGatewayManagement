@@ -1,6 +1,6 @@
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 
-namespace GJJApiGateway.Management.Application.Module.Validation;
+namespace GJJApiGateway.Management.Application.AccountService.Module.Validation;
 
 /// <summary>
 /// 用户名校验模块，封装所有与用户名验证相关的逻辑。
@@ -26,10 +26,10 @@ public class UserNameCheckModule: IUserNameCheckModule
         }
 
         // 2. 检查用户名格式是否有效（如邮箱或手机号格式）
-        if (!IsUserNameFormatValid(userName))
-        {
-            return new UserName_ValidationResult(false, "用户名格式不正确");
-        }
+        // if (!IsUserNameFormatValid(userName))
+        // {
+        //     return new UserName_ValidationResult(false, "用户名格式不正确");
+        // }
 
         // 3. 检查用户是否存在于数据库
         bool exists = await DoesUserExistAsync(userName);

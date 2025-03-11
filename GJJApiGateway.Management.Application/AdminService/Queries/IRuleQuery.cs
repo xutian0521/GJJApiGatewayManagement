@@ -1,9 +1,8 @@
 using GJJApiGateway.Management.Application.AccountService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
+using GJJApiGateway.Management.Application.AdminService.DTOs;
 using GJJApiGateway.Management.Application.Shared.DTOs;
-using GJJApiGateway.Management.Model.Entities;
 
-namespace GJJApiGateway.Management.Application.RuleService.Queries;
+namespace GJJApiGateway.Management.Application.AdminService.Queries;
 
 public interface IRuleQuery
 {
@@ -12,8 +11,9 @@ public interface IRuleQuery
     Task<PageResult<A_SysUserInfoDto>> GetPagedUsersAsync(string userName, string roleId, int pageIndex, int pageSize);
     Task<A_SysRoleDto?> GetRoleByIdAsync(int id);
     Task<PageResult<A_SysRoleDto>> GetPagedRolesAsync(string roleName, int pageIndex, int pageSize);
-    Task<PageResult<A_SysDataDictionaryDto>> GetPagedDataDictionariesAsync(int pageIndex, int pageSize);
-    Task<List<A_SysDataDictionaryDto>> GetDataDictionaryTreeAsync(int rootPId);
+    Task<PageResult<A_SysDataDictionaryDto>> GetPagedParentsAsync(int pageIndex, int pageSize);
+    Task<List<A_SysDataDictionaryDto>> GetChildrenByParentIdsAsync(List<int> parentIds);
+    Task<List<A_SysDataDictionaryDto>> GetAllDataDictionaryAsync();
     Task<List<A_SysDataDictionaryDto>> GetEnumTypeListAsync();
     Task<A_SysDataDictionaryDto> GetDataDictionaryByIdAsync(int id);
 

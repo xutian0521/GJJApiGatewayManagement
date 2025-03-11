@@ -1,6 +1,5 @@
 using AutoMapper;
 using GJJApiGateway.Management.Application.APIAuthService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Model.Entities;
 

@@ -1,8 +1,7 @@
 using GJJApiGateway.Management.Application.AccountService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
-using GJJApiGateway.Management.Model.Entities;
+using GJJApiGateway.Management.Application.AdminService.DTOs;
 
-namespace GJJApiGateway.Management.Application.RuleService.Commands;
+namespace GJJApiGateway.Management.Application.AdminService.Commands;
 
 public interface IRuleCommand
 {

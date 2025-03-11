@@ -2,8 +2,8 @@
 using GJJApiGateway.Management.Api.Controllers.Admin.DTOs;
 using GJJApiGateway.Management.Api.Controllers.Admin.ViewModels;
 using GJJApiGateway.Management.Api.Controllers.Shared.ViewModels;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.Interfaces;
+using GJJApiGateway.Management.Application.AdminService.DTOs;
+using GJJApiGateway.Management.Application.AdminService.Interfaces;
 using GJJApiGateway.Management.Common.Constants;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +11,12 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RuleController : ControllerBase
+    public class AdminController : ControllerBase
     {
         private readonly IRuleService _ruleService;
         private readonly IMapper _mapper;
 
-        public RuleController(IRuleService ruleService, IMapper mapper)
+        public AdminController(IRuleService ruleService, IMapper mapper)
         {
             _ruleService = ruleService;
             _mapper = mapper;
@@ -177,8 +177,8 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
     [HttpGet("DictTreeList")]
     public async Task<s_ApiResult<List<C_SysDataDictionaryDto>>> DictTreeList()
     {
-        var list = await _ruleService.DictTreeListAsync(0);
-        var result = _mapper.Map<List<C_SysDataDictionaryDto>>(list);
+        var list = await _ruleService.GetDataDictionaryTreeAsync(0);
+        var result = _mapper.Map<List<C_SysDataDictionaryDto>>(list.Data);
         return new s_ApiResult<List<C_SysDataDictionaryDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
     }
 
@@ -187,7 +187,7 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
     public async Task<s_ApiResult<List<C_SysDataDictionaryDto>>> EnumTypeList()
     {
         var list = await _ruleService.EnumTypeListAsync();
-        var result = _mapper.Map<List<C_SysDataDictionaryDto>>(list);
+        var result = _mapper.Map<List<C_SysDataDictionaryDto>>(list.Data);
         return new s_ApiResult<List<C_SysDataDictionaryDto>>(ApiResultCodeConst.SUCCESS, ApiResultMessageConst.SUCCESS, result);
     }
 
@@ -210,8 +210,8 @@ namespace GJJApiGateway.Management.Api.Controllers.Admin
     }
 
     // 删除枚举字典
-    [HttpPost("DeleteEnum")]
-    public async Task<s_ApiResult<string>> DeleteEnum([FromBody] int id)
+    [HttpGet("DeleteEnum")]
+    public async Task<s_ApiResult<string>> DeleteEnum(int id)
     {
         var result = await _ruleService.DeleteEnumAsync(id);
         return new s_ApiResult<string>(result.Code, result.Message, "");

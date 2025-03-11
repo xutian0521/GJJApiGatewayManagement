@@ -1,19 +1,18 @@
 ﻿using AutoMapper;
 using GJJApiGateway.Management.Application.AccountService.Commands;
 using GJJApiGateway.Management.Application.AccountService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.Commands;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.Interfaces;
-using GJJApiGateway.Management.Application.RuleService.Queries;
+using GJJApiGateway.Management.Application.AdminService.Commands;
+using GJJApiGateway.Management.Application.AdminService.DTOs;
+using GJJApiGateway.Management.Application.AdminService.Interfaces;
+using GJJApiGateway.Management.Application.AdminService.Queries;
 using GJJApiGateway.Management.Application.Shared.DTOs;
 using GJJApiGateway.Management.Application.Shared.Queries;
 using GJJApiGateway.Management.Common.Utilities;
 using GJJApiGateway.Management.Infrastructure.Configuration;
-using GJJApiGateway.Management.Infrastructure.Repositories;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Model.Entities;
 
-namespace GJJApiGateway.Management.Application.RuleService.Implementations
+namespace GJJApiGateway.Management.Application.AdminService.Implementations
 {
     public class RuleService : IRuleService
     {
@@ -409,22 +408,119 @@ namespace GJJApiGateway.Management.Application.RuleService.Implementations
 
         public async Task<ServiceResult<PageResult<A_SysDataDictionaryDto>>> DictListAsync(int pageIndex = 1, int pageSize = 10)
         {
-            // 调用仓储层获取分页数据
-            var pager = await _ruleQuery.GetPagedDataDictionariesAsync(pageIndex, pageSize);
+            // 第一步：分页查询父级记录（假设 PId 为 0 或 null 表示父节点）
+            var parentPageResult = await _ruleQuery.GetPagedParentsAsync(pageIndex, pageSize);
+            var parentIds = parentPageResult.List.Select(x => x.Id).ToList();
 
-            return pager.Total > 0
-                ? ServiceResult<PageResult<A_SysDataDictionaryDto>>.Success(pager, "获取字典枚举列表成功")
-                : ServiceResult<PageResult<A_SysDataDictionaryDto>>.Fail("未找到字典枚举数据");
+            // 第二步：查询这些父节点的所有子节点（通过 IN 查询实现）
+            var children = await _ruleQuery.GetChildrenByParentIdsAsync(parentIds);
+
+            // 第三步：在业务层组装树形结构
+            var treeList = BuildTree(parentPageResult.List, children);
+
+            // 封装为 PageResult 对象
+            var pageResult = new PageResult<A_SysDataDictionaryDto>
+            {
+                List = treeList,
+                Total = parentPageResult.Total
+            };
+
+            // 返回 ServiceResult 包装后的分页结果
+            return ServiceResult<PageResult<A_SysDataDictionaryDto>>.Success(pageResult, "查询成功");
+        }
+        
+        private List<A_SysDataDictionaryDto> BuildTree(List<A_SysDataDictionaryDto> parentDtos, List<A_SysDataDictionaryDto> childDtos)
+        {
+            
+            var childLookup = childDtos.GroupBy(c => c.PId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 组装父子结构
+            foreach (var parent in parentDtos)
+            {
+                if (childLookup.ContainsKey(parent.Id))
+                {
+                    parent.Children = childLookup[parent.Id];
+                }
+            }
+            return parentDtos;
         }
 
-        public async Task<ServiceResult<List<A_SysDataDictionaryDto>>> DictTreeListAsync(int pId)
+        // public async Task<ServiceResult<List<A_SysDataDictionaryDto>>> DictTreeListAsync(int pId)
+        // {
+        //     // 调用仓储层获取数据字典树
+        //     var dictionaryTree = await _ruleQuery.GetDataDictionaryTreeAsync(pId);
+        //
+        //     return dictionaryTree.Any()
+        //         ? ServiceResult<List<A_SysDataDictionaryDto>>.Success(dictionaryTree, "获取字典列表成功")
+        //         : ServiceResult<List<A_SysDataDictionaryDto>>.Fail("未找到字典数据");
+        // }
+        public async Task<ServiceResult<List<A_SysDataDictionaryDto>>> GetDataDictionaryTreeAsync(int rootPId)
         {
-            // 调用仓储层获取数据字典树
-            var dictionaryTree = await _ruleQuery.GetDataDictionaryTreeAsync(pId);
+            // 从数据层获取所有相关记录（扁平数据）
+            var allNodes = await _ruleQuery.GetAllDataDictionaryAsync();
 
-            return dictionaryTree.Any()
-                ? ServiceResult<List<A_SysDataDictionaryDto>>.Success(dictionaryTree, "获取字典列表成功")
-                : ServiceResult<List<A_SysDataDictionaryDto>>.Fail("未找到字典数据");
+            // 组装树形结构
+            var tree = BuildTree(allNodes, rootPId);
+
+            return ServiceResult<List<A_SysDataDictionaryDto>>.Success(tree, "获取字典树成功");
+        }
+
+        /// <summary>
+        /// 根据扁平 DTO 列表构建树形结构（递归组装），并进行排序
+        /// </summary>
+        private List<A_SysDataDictionaryDto> BuildTree(List<A_SysDataDictionaryDto> flatDtoList, int rootPId)
+        {
+            if (flatDtoList == null || !flatDtoList.Any())
+                return new List<A_SysDataDictionaryDto>();
+
+            // 确保每个节点的 Children 集合不为空
+            foreach (var dto in flatDtoList)
+            {
+                if (dto.Children == null)
+                    dto.Children = new List<A_SysDataDictionaryDto>();
+            }
+
+            // 建立 id 到 dto 的字典
+            var dict = flatDtoList.ToDictionary(x => x.Id);
+            List<A_SysDataDictionaryDto> roots = new List<A_SysDataDictionaryDto>();
+
+            // 组装树形结构
+            foreach (var dto in flatDtoList)
+            {
+                // 如果当前节点的 PId 与根节点匹配，则为根节点
+                if (dto.PId == rootPId)
+                {
+                    roots.Add(dto);
+                }
+                else if (dict.TryGetValue(dto.PId, out var parent))
+                {
+                    parent.Children.Add(dto);
+                }
+            }
+
+            // 对树形结构进行排序（例如按 SortId 排序）
+            SortTree(roots);
+
+            return roots;
+        }
+
+        /// <summary>
+        /// 递归排序树节点
+        /// </summary>
+        private void SortTree(List<A_SysDataDictionaryDto> nodes)
+        {
+            if (nodes == null || nodes.Count == 0)
+                return;
+
+            // 按 SortId 升序排序（可根据需要扩展排序逻辑）
+            nodes.Sort((a, b) => a.SortId.CompareTo(b.SortId));
+
+            // 递归对子节点排序
+            foreach (var node in nodes)
+            {
+                SortTree(node.Children);
+            }
         }
         
         public async Task<ServiceResult<List<A_SysDataDictionaryDto>>> EnumTypeListAsync()

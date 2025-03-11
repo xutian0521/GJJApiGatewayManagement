@@ -1,12 +1,10 @@
 using AutoMapper;
 using GJJApiGateway.Management.Application.AccountService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
+using GJJApiGateway.Management.Application.AdminService.DTOs;
 using GJJApiGateway.Management.Application.Shared.DTOs;
-using GJJApiGateway.Management.Infrastructure.Repositories;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
-using GJJApiGateway.Management.Model.Entities;
 
-namespace GJJApiGateway.Management.Application.RuleService.Queries;
+namespace GJJApiGateway.Management.Application.AdminService.Queries;
 
 public class RuleQuery: IRuleQuery
 {
@@ -77,16 +75,22 @@ public class RuleQuery: IRuleQuery
         return paperDto;
     }
 
-    public async Task<PageResult<A_SysDataDictionaryDto>> GetPagedDataDictionariesAsync(int pageIndex, int pageSize)
+    public async Task<PageResult<A_SysDataDictionaryDto>> GetPagedParentsAsync(int pageIndex, int pageSize)
     {
-        var dataPaper = await _dataDictionaryRepository.GetPagedDataDictionariesAsync(pageIndex, pageSize);
+        var dataPaper = await _dataDictionaryRepository.GetPagedParentsAsync(pageIndex, pageSize);
         var paperDto = _mapper.Map<PageResult<A_SysDataDictionaryDto>>(dataPaper);
         return paperDto;
     }
 
-    public async Task<List<A_SysDataDictionaryDto>> GetDataDictionaryTreeAsync(int rootPId)
+    public async Task<List<A_SysDataDictionaryDto>> GetChildrenByParentIdsAsync(List<int> parentIds)
     {
-        var datas = await _dataDictionaryRepository.GetDataDictionaryTreeAsync(rootPId);
+        var datas = await _dataDictionaryRepository.GetChildrenByParentIdsAsync(parentIds);
+        var dataDtos = _mapper.Map<List<A_SysDataDictionaryDto>>(datas);
+        return dataDtos;
+    }
+    public async Task<List<A_SysDataDictionaryDto>> GetAllDataDictionaryAsync()
+    {
+        var datas = await _dataDictionaryRepository.GetAllDataDictionaryAsync();
         var dataDtos = _mapper.Map<List<A_SysDataDictionaryDto>>(datas);
         return dataDtos;
     }

@@ -1,4 +1,4 @@
-namespace GJJApiGateway.Management.Application.RuleService.DTOs;
+namespace GJJApiGateway.Management.Application.AdminService.DTOs;
 
 /// <summary>
 /// 业务层角色表dto

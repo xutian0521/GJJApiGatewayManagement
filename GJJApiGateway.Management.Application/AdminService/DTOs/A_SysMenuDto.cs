@@ -1,4 +1,4 @@
-﻿namespace GJJApiGateway.Management.Application.RuleService.DTOs
+﻿namespace GJJApiGateway.Management.Application.AdminService.DTOs
 {
     public class A_SysMenuDto
     {

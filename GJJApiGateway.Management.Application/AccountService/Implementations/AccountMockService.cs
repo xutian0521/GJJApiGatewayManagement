@@ -2,7 +2,7 @@
 using GJJApiGateway.Management.Application.AccountService.Commands;
 using GJJApiGateway.Management.Application.AccountService.DTOs;
 using GJJApiGateway.Management.Application.AccountService.Interfaces;
-using GJJApiGateway.Management.Application.Module.Validation;
+using GJJApiGateway.Management.Application.AccountService.Module.Validation;
 using GJJApiGateway.Management.Application.Shared.DTOs;
 using GJJApiGateway.Management.Application.Shared.Queries;
 using GJJApiGateway.Management.Common.Utilities;

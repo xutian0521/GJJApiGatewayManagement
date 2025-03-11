@@ -7,10 +7,11 @@ namespace GJJApiGateway.Management.Infrastructure.Repositories.Interfaces
 {
     public interface IDataDictionaryRepository
     {
-        Task<DataPageResult<SysDataDictionaryDto>> GetPagedDataDictionariesAsync(int pageIndex, int pageSize);
-        Task<List<SysDataDictionaryDto>> GetDataDictionaryTreeAsync(int rootPId);
+        Task<DataPageResult<SysDataDictionary>> GetPagedParentsAsync(int pageIndex, int pageSize);
+        Task<List<SysDataDictionary>> GetChildrenByParentIdsAsync(List<int> parentIds);
+        Task<List<SysDataDictionary>> GetAllDataDictionaryAsync();
         Task<List<SysDataDictionary>> GetEnumTypeListAsync();
-        Task<SysDataDictionaryDto> GetDataDictionaryByIdAsync(int id);
+        Task<SysDataDictionary> GetDataDictionaryByIdAsync(int id);
         Task<int> InsertDataDictionaryAsync(SysDataDictionary dataDictionary);
         Task<int> UpdateDataDictionaryAsync(SysDataDictionary dataDictionary);
 

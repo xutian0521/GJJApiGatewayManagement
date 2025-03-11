@@ -1,8 +1,8 @@
 ﻿using GJJApiGateway.Management.Application.AccountService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
+using GJJApiGateway.Management.Application.AdminService.DTOs;
 using GJJApiGateway.Management.Application.Shared.DTOs;
 
-namespace GJJApiGateway.Management.Application.RuleService.Interfaces
+namespace GJJApiGateway.Management.Application.AdminService.Interfaces
 {
     public interface IRuleService
     {
@@ -34,7 +34,7 @@ namespace GJJApiGateway.Management.Application.RuleService.Interfaces
         //---------------------------------------------------字典-----------------------------------------------------
         
         Task<ServiceResult<PageResult<A_SysDataDictionaryDto>>> DictListAsync(int pageIndex = 1, int pageSize = 10);
-        Task<ServiceResult<List<A_SysDataDictionaryDto>>> DictTreeListAsync(int pId);
+        Task<ServiceResult<List<A_SysDataDictionaryDto>>> GetDataDictionaryTreeAsync(int pId);
         Task<ServiceResult<List<A_SysDataDictionaryDto>>> EnumTypeListAsync();
         Task<ServiceResult<A_SysDataDictionaryDto>> LoadModifyEnumInfoAsync(int id);
 

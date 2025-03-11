@@ -1,4 +1,4 @@
-namespace GJJApiGateway.Management.Application.Module.Validation;
+namespace GJJApiGateway.Management.Application.AccountService.Module.Validation;
 
 
 public interface IUserNameCheckModule

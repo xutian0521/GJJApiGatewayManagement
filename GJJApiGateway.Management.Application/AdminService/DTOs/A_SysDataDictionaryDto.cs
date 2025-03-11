@@ -1,6 +1,6 @@
-namespace GJJApiGateway.Management.Infrastructure.DTOs;
+namespace GJJApiGateway.Management.Application.AdminService.DTOs;
 
-public class SysDataDictionaryDto
+public class A_SysDataDictionaryDto
 {
     /// <summary>
     /// id
@@ -10,10 +10,6 @@ public class SysDataDictionaryDto
     /// 父级id
     /// </summary>
     public int PId { get; set; }
-    /// <summary>
-    /// 父级名称
-    /// </summary>
-    public string? ParentName { get; set; }
     /// <summary>
     /// 字典key
     /// </summary>
@@ -45,5 +41,5 @@ public class SysDataDictionaryDto
     /// <summary>
     /// 子字典
     /// </summary>
-    public List<SysDataDictionaryDto>? Children { get; set; }  
+    public List<A_SysDataDictionaryDto>? Children { get; set; }  
 }

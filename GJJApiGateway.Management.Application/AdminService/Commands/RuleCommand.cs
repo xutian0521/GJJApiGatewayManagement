@@ -1,11 +1,10 @@
 using AutoMapper;
 using GJJApiGateway.Management.Application.AccountService.DTOs;
-using GJJApiGateway.Management.Application.RuleService.DTOs;
-using GJJApiGateway.Management.Infrastructure.Repositories;
+using GJJApiGateway.Management.Application.AdminService.DTOs;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Model.Entities;
 
-namespace GJJApiGateway.Management.Application.RuleService.Commands;
+namespace GJJApiGateway.Management.Application.AdminService.Commands;
 
 public class RuleCommand: IRuleCommand
 {
