@@ -31,6 +31,7 @@ using GJJApiGateway.Management.Application.APIAuthService.Mappings;
 using GJJApiGateway.Management.Application.APIAuthService.Queries;
 using GJJApiGateway.Management.Application.Shared.Queries;
 using GJJApiGateway.Management.Infrastructure.Configuration;
+using GJJApiGateway.Management.Infrastructure.Repositories.Implementations;
 using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);

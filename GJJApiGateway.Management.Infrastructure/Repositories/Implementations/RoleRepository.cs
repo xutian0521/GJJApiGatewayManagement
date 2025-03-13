@@ -1,14 +1,9 @@
-﻿using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
+﻿using GJJApiGateway.Management.Infrastructure.DTOs;
+using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using GJJApiGateway.Management.Model.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GJJApiGateway.Management.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
 
-namespace GJJApiGateway.Management.Infrastructure.Repositories
+namespace GJJApiGateway.Management.Infrastructure.Repositories.Implementations
 {
     public class RoleRepository : IRoleRepository
     {
