@@ -26,7 +26,7 @@ public static class SystemServiceExtensions
     private static string _seqHostHTTP = "http://192.168.2.188:5341/ingest/otlp/v1/traces";
     private static string _seqHostLog = "http://192.168.2.188:5341/ingest/otlp/v1/logs";
     private static string _hostIP = NetworkHelper.GetLocalIPAddress();
-    private static int _hostPort = 5043;
+    private static int _hostPort = 6002;
     
     /// <summary>
     /// 注册所有系统通用基础设施

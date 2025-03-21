@@ -28,11 +28,6 @@ namespace GJJApiGateway.Management.Infrastructure
         public DbSet<ApiInfo> ApiInfos { get; set; }
         public DbSet<ApiApplication> ApiApplications { get; set; }
         public DbSet<ApiApplicationMapping> ApiApplicationMappings { get; set; }
-        public DbSet<SysUserInfo> SysUserInfos { get; set; }
-        public DbSet<SysMenu> SysMenus { get; set; }
-        public DbSet<SysRoleMenu> SysRoleMenus { get; set; }
-        public DbSet<SysRole> SysRoles { get; set; }
-        public DbSet<SysDataDictionary> SysDataDictionarys { get; set; }
 
         
         /// <summary>
@@ -45,11 +40,6 @@ namespace GJJApiGateway.Management.Infrastructure
             modelBuilder.ApplyConfiguration(new ApiInfoMapping());
             modelBuilder.ApplyConfiguration(new ApiApplicationMap());
             modelBuilder.ApplyConfiguration(new ApiApplicationMappingMap());
-            modelBuilder.ApplyConfiguration(new SysUserInfoMapping());
-            modelBuilder.ApplyConfiguration(new SysMenuMapping());
-            modelBuilder.ApplyConfiguration(new SysRoleMenuMapping());
-            modelBuilder.ApplyConfiguration(new SysRoleMapping());
-            modelBuilder.ApplyConfiguration(new SysDataDictionaryMapping());
         }
     }
 }

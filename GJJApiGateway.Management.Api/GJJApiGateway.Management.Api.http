@@ -1,4 +1,4 @@
-@GJJApiGateway.Management.Api_HostAddress = http://localhost:5043
+@GJJApiGateway.Management.Api_HostAddress = http://localhost:6002
 
 GET {{GJJApiGateway.Management.Api_HostAddress}}/weatherforecast/
 Accept: application/json

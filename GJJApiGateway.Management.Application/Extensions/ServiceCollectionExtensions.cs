@@ -1,18 +1,8 @@
-﻿using GJJApiGateway.Management.Application.AccountService.Commands;
-using GJJApiGateway.Management.Application.AccountService.Implementations;
-using GJJApiGateway.Management.Application.AccountService.Interfaces;
-using GJJApiGateway.Management.Application.AccountService.Mappings;
-using GJJApiGateway.Management.Application.AccountService.Module.Validation;
-using GJJApiGateway.Management.Application.AdminService.Commands;
-using GJJApiGateway.Management.Application.AdminService.Implementations;
-using GJJApiGateway.Management.Application.AdminService.Interfaces;
-using GJJApiGateway.Management.Application.AdminService.Mappings;
-using GJJApiGateway.Management.Application.AdminService.Queries;
-using GJJApiGateway.Management.Application.APIAuthService.Commands;
+﻿using GJJApiGateway.Management.Application.APIAuthService.Commands;
 using GJJApiGateway.Management.Application.APIAuthService.Implementations;
 using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
+using GJJApiGateway.Management.Application.APIAuthService.Mappings;
 using GJJApiGateway.Management.Application.APIAuthService.Queries;
-using GJJApiGateway.Management.Application.Shared.Queries;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using GJJApiGateway.Management.Infrastructure;
@@ -37,18 +27,11 @@ namespace GJJApiGateway.Management.Application.Extensions
         {
             // 注册授权服务接口及其实现
             services.AddScoped<IAuthorizationService, AuthorizationService>();
-            services.AddScoped<IUserNameCheckModule, UserNameCheckModule>();
             services.AddScoped<IApiApplicationService, ApiApplicationService>();
-            services.AddScoped<IUserInfoCommand, UserInfoCommand>();
-            services.AddScoped<IRuleCommand, RuleCommand>();
-            services.AddScoped<IRuleQuery, RuleQuery>();
-            services.AddScoped<IUserInfoQuery, UserInfoQuery>();
             services.AddScoped<PasswordSettings, PasswordSettings>();
             services.AddScoped<IAuthQuery, AuthQuery>();
             services.AddScoped<IAuthCommand, AuthCommand>();
             services.AddScoped<ApiManageService>();
-            services.AddScoped<IRuleService, RuleService>();
-
 
             return services;
         }
@@ -69,12 +52,6 @@ namespace GJJApiGateway.Management.Application.Extensions
             services.AddScoped<IApiApplicationRepository, ApiApplicationRepository>();
             services.AddScoped<IApiApplicationMappingRepository, ApiApplicationMappingRepository>();
             services.AddScoped<IApiInfoRepository, ApiInfoRepository>();
-            services.AddScoped<IAccountService, AccountMockService>();
-            services.AddScoped<ISysUserInfoRepository, UserInfoRepository>();
-            services.AddScoped<IMenuRepository, MenuRepository>();
-            services.AddScoped<IRoleMenuRepository, RoleMenuRepository>();
-            services.AddScoped<IDataDictionaryRepository, DataDictionaryRepository>();
-            services.AddScoped<IRoleRepository, RoleRepository>();
 
             return services;
         }
@@ -99,8 +76,7 @@ namespace GJJApiGateway.Management.Application.Extensions
         public static IServiceCollection AddApplicationAutoMapperProfiles(this IServiceCollection services)
         {
             services.AddAutoMapper(
-                typeof(A_AccountServiceMappingProfile),
-                typeof(A_RuleServiceMappingProfile)
+                typeof(A_APIAuthServiceMappingProfile)
             );
 
             return services;

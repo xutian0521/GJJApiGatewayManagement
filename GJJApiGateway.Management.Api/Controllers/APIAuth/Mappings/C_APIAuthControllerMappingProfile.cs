@@ -1,10 +1,7 @@
 using AutoMapper;
-using GJJApiGateway.Management.Api.Controllers.Account.DTOs;
-using GJJApiGateway.Management.Api.Controllers.Account.ViewModels;
 using GJJApiGateway.Management.Api.Controllers.APIAuth.DTOs;
 using GJJApiGateway.Management.Api.Controllers.APIAuth.ViewModels;
 using GJJApiGateway.Management.Api.Controllers.Shared.ViewModels;
-using GJJApiGateway.Management.Application.AccountService.DTOs;
 using GJJApiGateway.Management.Application.APIAuthService.DTOs;
 using GJJApiGateway.Management.Application.Shared.DTOs;
 
