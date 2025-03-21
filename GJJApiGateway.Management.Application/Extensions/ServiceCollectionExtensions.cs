@@ -1,9 +1,23 @@
-﻿using GJJApiGateway.Management.Application.APIAuthService.Implementations;
+﻿using GJJApiGateway.Management.Application.AccountService.Commands;
+using GJJApiGateway.Management.Application.AccountService.Implementations;
+using GJJApiGateway.Management.Application.AccountService.Interfaces;
+using GJJApiGateway.Management.Application.AccountService.Mappings;
+using GJJApiGateway.Management.Application.AccountService.Module.Validation;
+using GJJApiGateway.Management.Application.AdminService.Commands;
+using GJJApiGateway.Management.Application.AdminService.Implementations;
+using GJJApiGateway.Management.Application.AdminService.Interfaces;
+using GJJApiGateway.Management.Application.AdminService.Mappings;
+using GJJApiGateway.Management.Application.AdminService.Queries;
+using GJJApiGateway.Management.Application.APIAuthService.Commands;
+using GJJApiGateway.Management.Application.APIAuthService.Implementations;
 using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
+using GJJApiGateway.Management.Application.APIAuthService.Queries;
+using GJJApiGateway.Management.Application.Shared.Queries;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
-using GJJApiGateway.Management.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using GJJApiGateway.Management.Infrastructure;
+using GJJApiGateway.Management.Infrastructure.Configuration;
+using GJJApiGateway.Management.Infrastructure.Repositories.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -23,6 +37,19 @@ namespace GJJApiGateway.Management.Application.Extensions
         {
             // 注册授权服务接口及其实现
             services.AddScoped<IAuthorizationService, AuthorizationService>();
+            services.AddScoped<IUserNameCheckModule, UserNameCheckModule>();
+            services.AddScoped<IApiApplicationService, ApiApplicationService>();
+            services.AddScoped<IUserInfoCommand, UserInfoCommand>();
+            services.AddScoped<IRuleCommand, RuleCommand>();
+            services.AddScoped<IRuleQuery, RuleQuery>();
+            services.AddScoped<IUserInfoQuery, UserInfoQuery>();
+            services.AddScoped<PasswordSettings, PasswordSettings>();
+            services.AddScoped<IAuthQuery, AuthQuery>();
+            services.AddScoped<IAuthCommand, AuthCommand>();
+            services.AddScoped<ApiManageService>();
+            services.AddScoped<IRuleService, RuleService>();
+
+
             return services;
         }
 
@@ -37,11 +64,17 @@ namespace GJJApiGateway.Management.Application.Extensions
             // 配置数据库上下文，使用 SQL Server 数据库
             services.AddDbContext<ManagementDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-            
 
             // 注册其他仓储和基础设施服务
-            // 例如：
-            // services.AddScoped<IAnotherRepository, AnotherRepository>();
+            services.AddScoped<IApiApplicationRepository, ApiApplicationRepository>();
+            services.AddScoped<IApiApplicationMappingRepository, ApiApplicationMappingRepository>();
+            services.AddScoped<IApiInfoRepository, ApiInfoRepository>();
+            services.AddScoped<IAccountService, AccountMockService>();
+            services.AddScoped<ISysUserInfoRepository, UserInfoRepository>();
+            services.AddScoped<IMenuRepository, MenuRepository>();
+            services.AddScoped<IRoleMenuRepository, RoleMenuRepository>();
+            services.AddScoped<IDataDictionaryRepository, DataDictionaryRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
 
             return services;
         }
@@ -55,6 +88,21 @@ namespace GJJApiGateway.Management.Application.Extensions
         {
             // 注册通用服务，如日志记录
             services.AddLogging();
+            return services;
+        }
+        
+        /// <summary>
+        /// 添加 AutoMapper 映射配置到服务集合。
+        /// </summary>
+        /// <param name="services">服务集合实例。</param>
+        /// <returns>配置后的服务集合。</returns>
+        public static IServiceCollection AddApplicationAutoMapperProfiles(this IServiceCollection services)
+        {
+            services.AddAutoMapper(
+                typeof(A_AccountServiceMappingProfile),
+                typeof(A_RuleServiceMappingProfile)
+            );
+
             return services;
         }
     }
