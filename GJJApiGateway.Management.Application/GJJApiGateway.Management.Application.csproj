@@ -17,6 +17,10 @@
 </ItemGroup>
 <ItemGroup>
   <Folder Include="APIAuthService\Module\" />
+  <Folder Include="RouteService\Commands\" />
+  <Folder Include="RouteService\Mappings\" />
+  <Folder Include="RouteService\Module\" />
+  <Folder Include="RouteService\Queries\" />
   <Folder Include="Shared\Commands\" />
   <Folder Include="Shared\Mappings\" />
   <Folder Include="Shared\Queries\" />

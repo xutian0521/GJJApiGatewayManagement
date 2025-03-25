@@ -1,4 +1,5 @@
 using GJJApiGateway.Management.Api.Controllers.APIAuth.Mappings;
+using GJJApiGateway.Management.Api.Controllers.Route.Mappings;
 using GJJApiGateway.Management.Api.Filter;
 using Newtonsoft.Json;
 
@@ -41,7 +42,9 @@ public static class ApiServiceExtensions
     public static IServiceCollection AddControllersAutoMapperProfiles(this IServiceCollection services)
     {
         services.AddAutoMapper(
-            typeof(C_APIAuthControllerMappingProfile)
+            typeof(C_APIAuthControllerMappingProfile),
+            typeof(C_RouteControllerMappingProfile)
+            
         );
 
         return services;
