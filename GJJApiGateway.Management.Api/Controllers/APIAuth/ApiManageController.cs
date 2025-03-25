@@ -2,6 +2,7 @@
 using GJJApiGateway.Management.Api.Controllers.APIAuth.DTOs;
 using GJJApiGateway.Management.Api.Controllers.APIAuth.ViewModels;
 using GJJApiGateway.Management.Api.Controllers.Shared.ViewModels;
+using GJJApiGateway.Management.Application.APIAuthService.Constants;
 using GJJApiGateway.Management.Application.APIAuthService.DTOs;
 using GJJApiGateway.Management.Application.APIAuthService.Implementations;
 using GJJApiGateway.Management.Common.Attributes;

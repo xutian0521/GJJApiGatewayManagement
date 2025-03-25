@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using GJJApiGateway.Management.Application.RouteService.Constants;
 using GJJApiGateway.Management.Application.RouteService.Interfaces;
+using GJJApiGateway.Management.Common.Extensions;
 
 public class ConsulRouteService : IRouteService
 {
@@ -37,7 +38,7 @@ public class ConsulRouteService : IRouteService
         var jsonString = Encoding.UTF8.GetString(kvResult.Response.Value);
 
         // 3. 反序列化为动态对象（根据实际路由结构定义DTO）
-        var routesData = JsonSerializer.Deserialize<OcelotRoutesConfig>(jsonString);
+        var routesData = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(jsonString);
 
         // 4. 转换为业务DTO并应用过滤
         var allRoutes = _mapper.Map<List<A_ConsulRouteDto>>(routesData?.Routes ?? new List<A_RouteConfigDto>());
@@ -82,35 +83,5 @@ public class ConsulRouteService : IRouteService
             "查询成功");
         
 
-    }
-}
-
-// 辅助类定义（需根据实际Consul存储的JSON结构调整）
-public class OcelotRoutesConfig
-{
-    public List<A_RouteConfigDto> Routes { get; set; } = new();
-}
-
-public class A_RouteConfigDto
-{
-    public string? ServiceName { get; set; }
-    public string? DownstreamPathTemplate { get; set; }
-    public string? UpstreamPathTemplate { get; set; }
-    public string DownstreamScheme { get; set; }
-    public List<string> UpstreamHttpMethod { get; set; }
-    public List<A_HostAndPortsDto> DownstreamHostAndPorts { get; set; }
-}
-
-public class A_HostAndPortsDto
-{
-    public string? Host { get; set; }
-    public int? Port { get; set; }
-}
-// 扩展方法（用于条件过滤）
-public static class QueryableExtensions
-{
-    public static IEnumerable<T> WhereIf<T>(this IEnumerable<T> source, bool condition, Func<T, bool> predicate)
-    {
-        return condition ? source.Where(predicate) : source;
     }
 }

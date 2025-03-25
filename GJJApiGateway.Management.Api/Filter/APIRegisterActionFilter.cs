@@ -1,4 +1,5 @@
-﻿using GJJApiGateway.Management.Common.Attributes;
+﻿using GJJApiGateway.Management.Application.APIAuthService.Constants;
+using GJJApiGateway.Management.Common.Attributes;
 using GJJApiGateway.Management.Common.Constants;
 using GJJApiGateway.Management.Model.Entities;
 using JWT.Serializers;
