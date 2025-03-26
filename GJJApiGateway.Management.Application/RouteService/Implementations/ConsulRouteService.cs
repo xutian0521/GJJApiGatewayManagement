@@ -84,4 +84,102 @@ public class ConsulRouteService : IRouteService
         
 
     }
+    
+     public async Task<ServiceResult<bool>> AddRouteAsync(A_ConsulRouteDto route)
+    {
+        try
+        {
+            var kvPair = await _consulClient.KV.Get("ocelot/routes");
+            var config = kvPair.Response == null 
+                ? new A_OcelotRoutesConfigDto() 
+                : JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
+
+            // 检查路由是否已存在
+            if (config.Routes.Any(r => r.UpstreamPathTemplate == route.UpstreamPathTemplate && 
+                                     r.UpstreamHttpMethod.SequenceEqual(route.UpstreamHttpMethod)))
+            {
+                return ServiceResult<bool>.Fail("路由已存在");
+            }
+
+            var newRoute = _mapper.Map<A_RouteConfigDto>(route);
+            config.Routes.Add(newRoute);
+
+            var putResult = await SaveRoutesToConsul(config, kvPair.Response.ModifyIndex);
+            return putResult.Response 
+                ? ServiceResult<bool>.Success(true, "添加成功") 
+                : ServiceResult<bool>.Fail("添加失败");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<bool>.Fail($"添加异常：{ex.Message}");
+        }
+    }
+
+    public async Task<ServiceResult<bool>> UpdateRouteAsync(A_ConsulRouteDto route)
+    {
+        try
+        {
+            var kvPair = await _consulClient.KV.Get("ocelot/routes");
+            if (kvPair.Response == null)
+                return ServiceResult<bool>.Fail("路由配置不存在");
+
+            var config = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
+            
+            var existingRoute = config.Routes.FirstOrDefault(r => r.UpstreamPathTemplate == route.UpstreamPathTemplate);
+            if (existingRoute == null)
+                return ServiceResult<bool>.Fail("要修改的路由不存在");
+
+            _mapper.Map(route, existingRoute);
+
+            var putResult = await SaveRoutesToConsul(config, kvPair.Response.ModifyIndex);
+            return putResult.Response 
+                ? ServiceResult<bool>.Success(true, "修改成功") 
+                : ServiceResult<bool>.Fail("修改失败，可能已被其他人修改");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<bool>.Fail($"修改异常：{ex.Message}");
+        }
+    }
+
+    public async Task<ServiceResult<bool>> DeleteRouteAsync(string upstreamPathTemplate)
+    {
+        try
+        {
+            var kvPair = await _consulClient.KV.Get("ocelot/routes");
+            if (kvPair.Response == null)
+                return ServiceResult<bool>.Fail("路由配置不存在");
+
+            var config = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
+            
+            var routeToRemove = config.Routes.FirstOrDefault(r => r.UpstreamPathTemplate == upstreamPathTemplate);
+            if (routeToRemove == null)
+                return ServiceResult<bool>.Fail("要删除的路由不存在");
+
+            config.Routes.Remove(routeToRemove);
+
+            var putResult = await SaveRoutesToConsul(config, kvPair.Response.ModifyIndex);
+            return putResult.Response 
+                ? ServiceResult<bool>.Success(true, "删除成功") 
+                : ServiceResult<bool>.Fail("删除失败，可能已被其他人修改");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<bool>.Fail($"删除异常：{ex.Message}");
+        }
+    }
+
+    private async Task<WriteResult<bool>> SaveRoutesToConsul(A_OcelotRoutesConfigDto config, ulong modifyIndex)
+    {
+        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        var jsonBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(config, jsonOptions));
+        
+        var putRequest = new KVPair("ocelot/routes")
+        {
+            Value = jsonBytes,
+            ModifyIndex = modifyIndex // 使用CAS机制
+        };
+
+        return await _consulClient.KV.Put(putRequest);
+    }
 }

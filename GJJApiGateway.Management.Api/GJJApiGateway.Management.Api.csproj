@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Route\DTOs\" />
     <Folder Include="Controllers\Shared\DTOs\" />
     <Folder Include="Controllers\Shared\Mappings\" />
   </ItemGroup>

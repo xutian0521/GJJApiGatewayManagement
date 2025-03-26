@@ -11,4 +11,11 @@ public interface IRouteService
         string? serviceDiscoveryMode,
         int pageIndex,
         int pageSize);
+
+    Task<ServiceResult<bool>> AddRouteAsync(A_ConsulRouteDto route);
+
+    Task<ServiceResult<bool>> UpdateRouteAsync(A_ConsulRouteDto route);
+
+    Task<ServiceResult<bool>> DeleteRouteAsync(string upstreamPathTemplate);
+
 }

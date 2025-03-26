@@ -1,4 +1,5 @@
 using AutoMapper;
+using GJJApiGateway.Management.Api.Controllers.Route.DTOs;
 using GJJApiGateway.Management.Api.Controllers.Route.ViewModels;
 using GJJApiGateway.Management.Api.Controllers.Shared.ViewModels;
 using GJJApiGateway.Management.Application.RouteService.DTOs;
@@ -10,10 +11,12 @@ public class C_RouteControllerMappingProfile: Profile
 {
     public C_RouteControllerMappingProfile()
     {
-        CreateMap<A_ConsulRouteDto, ConsulRouteVM>();
-        CreateMap<A_HostAndPortsDto, HostAndPortsVM>();
+        CreateMap<A_ConsulRouteDto, ConsulRouteVM>().ReverseMap();
+        CreateMap<A_HostAndPortsDto, HostAndPortsVM>().ReverseMap();
+        CreateMap<A_ConsulRouteDto, C_AddRouteDto>().ReverseMap();
+
         
-        CreateMap<PageResult<A_ConsulRouteDto>, Pager<ConsulRouteVM>>();
+        CreateMap<PageResult<A_ConsulRouteDto>, Pager<ConsulRouteVM>>().ReverseMap();
 
         CreateMap<A_RouteConfigDto, A_ConsulRouteDto>()
             // 基础字段映射
@@ -33,7 +36,7 @@ public class C_RouteControllerMappingProfile: Profile
             
             // 忽略无需映射的字段
             .ForMember(dest => dest.ServiceHost, opt => opt.Ignore())
-            .ForMember(dest => dest.ServicePort, opt => opt.Ignore());
+            .ForMember(dest => dest.ServicePort, opt => opt.Ignore()).ReverseMap();
         
         
         CreateMap<PageResult<A_ConsulRouteDto>, Pager<ConsulRouteVM>>()
