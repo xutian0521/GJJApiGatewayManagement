@@ -95,43 +95,33 @@ public class ConsulRouteService : IRouteService
                 : JsonSerializer.Deserialize<J_OcelotRoutesConfigDto>(
                     Encoding.UTF8.GetString(kvPair.Response.Value));
 
-            // 生成ID
+            // 唯一性校验（新增）
+            if (IsUpstreamPathTemplateDuplicate(config.Routes, route.UpstreamPathTemplate, route.Id))
+            {
+                return ServiceResult<bool>.Fail("上游路径模板必须唯一");
+            }
+
+            if (IsServiceNameDuplicate(config.Routes, route.ServiceName, route.Id))
+            {
+                return ServiceResult<bool>.Fail("服务名称必须唯一");
+            }
+            
             route.Id = GetNextRouteId(config.Routes);
-
-            // 检查路由是否已存在（根据上游路径模板和方法）
-            if (config.Routes.Any(r => 
-                    r.UpstreamPathTemplate == route.UpstreamPathTemplate && 
-                    r.UpstreamHttpMethod.SequenceEqual(route.UpstreamHttpMethod)))
-            {
-                return ServiceResult<bool>.Fail("路由已存在");
-            }
-
             var newRoute = _mapper.Map<J_RouteConfigDto>(route);
-            if (route.ServiceDiscoveryMode == ServiceDiscoveryModeConst.Static)
-            {
-                newRoute.DownstreamHostAndPorts =
-                [
-                    new J_HostAndPortsDto() { Host = route.DownstreamHost, Port = route.DownstreamPort }
-                ];
-                newRoute.ServiceName = null;
-            }
-            else
-            {
-                newRoute.DownstreamHostAndPorts = null;
-            }
+            
+            // 调用公共方法处理配置
+            AdjustRouteConfigBasedOnDiscoveryMode(route, newRoute);
+
             config.Routes.Add(newRoute);
 
             var putResult = await SaveRoutesToConsul(config, kvPair.Response?.ModifyIndex ?? 0);
-            return putResult.Response 
-                ? ServiceResult<bool>.Success(true, "添加成功") 
-                : ServiceResult<bool>.Fail("添加失败");
+            return HandleSaveResult(putResult, "添加");
         }
         catch (Exception ex)
         {
             return ServiceResult<bool>.Fail($"添加异常：{ex.Message}");
         }
     }
-    
 
     public async Task<ServiceResult<bool>> UpdateRouteAsync(A_ConsulRouteDto route)
     {
@@ -141,32 +131,31 @@ public class ConsulRouteService : IRouteService
             if (kvPair.Response == null)
                 return ServiceResult<bool>.Fail("路由配置不存在");
 
-            var config = JsonSerializer.Deserialize<J_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
+            var config = JsonSerializer.Deserialize<J_OcelotRoutesConfigDto>(
+                Encoding.UTF8.GetString(kvPair.Response.Value));
             
-            // 改为用ID查找
             var existingRoute = config.Routes.FirstOrDefault(r => r.Id == route.Id);
             if (existingRoute == null)
                 return ServiceResult<bool>.Fail("要修改的路由不存在");
 
+            // 唯一性校验（修改时排除自身）
+            if (IsUpstreamPathTemplateDuplicate(config.Routes, route.UpstreamPathTemplate, route.Id))
+            {
+                return ServiceResult<bool>.Fail("上游路径模板必须唯一");
+            }
+            
+            if (IsServiceNameDuplicate(config.Routes, route.ServiceName, route.Id))
+            {
+                return ServiceResult<bool>.Fail("服务名称必须唯一");
+            }
+            
             _mapper.Map(route, existingRoute);
             
-            if (route.ServiceDiscoveryMode == ServiceDiscoveryModeConst.Static)
-            {
-                existingRoute.DownstreamHostAndPorts =
-                [
-                    new J_HostAndPortsDto() { Host = route.DownstreamHost, Port = route.DownstreamPort }
-                ];
-                existingRoute.ServiceName = null;
-            }
-            else
-            {
-                existingRoute.DownstreamHostAndPorts = null;
-            }
-            
+            // 调用公共方法处理配置
+            AdjustRouteConfigBasedOnDiscoveryMode(route, existingRoute);
+
             var putResult = await SaveRoutesToConsul(config, kvPair.Response.ModifyIndex);
-            return putResult.Response 
-                ? ServiceResult<bool>.Success(true, "修改成功") 
-                : ServiceResult<bool>.Fail("修改失败，可能已被其他人修改");
+            return HandleSaveResult(putResult, "修改");
         }
         catch (Exception ex)
         {
@@ -221,5 +210,48 @@ public class ConsulRouteService : IRouteService
         if (!existingRoutes.Any()) return 1;
         return existingRoutes.Max(r => r.Id) + 1;
     }
+    
+    #region Private Methods
+    private void AdjustRouteConfigBasedOnDiscoveryMode(A_ConsulRouteDto source, J_RouteConfigDto target)
+    {
+        if (source.ServiceDiscoveryMode == ServiceDiscoveryModeConst.Static)
+        {
+            // 已在mapping 里映射了
+            // target.DownstreamHostAndPorts = new List<J_HostAndPortsDto>
+            // {
+            //     new() { Host = source.DownstreamHost, Port = source.DownstreamPort }
+            // };
+            target.ServiceName = null;
+        }
+        else
+        {
+            target.DownstreamHostAndPorts = null;
+            // 如果服务发现模式需要强制清空主机端口信息
+            target.DownstreamHostAndPorts?.Clear();
+        }
+    }
+
+    private bool IsUpstreamPathTemplateDuplicate(List<J_RouteConfigDto> existingRoutes, string upstreamPath, int currentId)
+    {
+        // Ocelot要求上游路径模板必须全局唯一
+        return existingRoutes.Any(r => 
+            r.UpstreamPathTemplate?.Equals(upstreamPath, StringComparison.OrdinalIgnoreCase) == true
+            && r.Id != currentId);
+    }
+    private bool IsServiceNameDuplicate(List<J_RouteConfigDto> existingRoutes, string serviceName, int currentId)
+    {
+        // Ocelot要求上游路径模板必须全局唯一
+        return existingRoutes.Any(r => 
+            r.ServiceName?.Equals(serviceName, StringComparison.OrdinalIgnoreCase) == true
+            && r.Id != currentId);
+    }
+
+    private ServiceResult<bool> HandleSaveResult(WriteResult<bool> result, string operation)
+    {
+        return result.Response 
+            ? ServiceResult<bool>.Success(true, $"{operation}成功") 
+            : ServiceResult<bool>.Fail($"{operation}失败，可能已被其他人修改");
+    }
+    #endregion
 
 }

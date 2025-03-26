@@ -61,25 +61,6 @@ public class A_ConsulRouteDto
     /// </summary>
     public int? DownstreamPort { get; set; }
 
-    /// <summary>
-    /// 下游服务主机（从ServiceDiscovery获取）
-    /// </summary>
-    public string? ServiceHost { get; set; }
-
-    /// <summary>
-    /// 下游服务端口（从ServiceDiscovery获取）
-    /// </summary>
-    public int? ServicePort { get; set; }
-
-    /// <summary>
-    /// 路由状态（可扩展启停用功能）
-    /// </summary>
-    public bool IsEnabled { get; set; } = true;
-
-    /// <summary>
-    /// 最后更新时间（可扩展审计功能）
-    /// </summary>
-    public DateTime LastUpdated { get; set; } 
     
     /// <summary>
     /// 用于区分服务获取方式，即通过服务名称进行动态发现（如 Service Discovery），或通过 DownstreamHostAndPorts 中指定的静态地址和端口进行配置。

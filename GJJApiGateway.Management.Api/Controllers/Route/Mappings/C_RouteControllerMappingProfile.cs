@@ -2,6 +2,7 @@ using AutoMapper;
 using GJJApiGateway.Management.Api.Controllers.Route.DTOs;
 using GJJApiGateway.Management.Api.Controllers.Route.ViewModels;
 using GJJApiGateway.Management.Api.Controllers.Shared.ViewModels;
+using GJJApiGateway.Management.Application.RouteService.Constants;
 using GJJApiGateway.Management.Application.RouteService.DTOs;
 using GJJApiGateway.Management.Application.Shared.DTOs;
 
@@ -18,25 +19,11 @@ public class C_RouteControllerMappingProfile: Profile
         
         CreateMap<PageResult<A_ConsulRouteDto>, Pager<ConsulRouteVM>>().ReverseMap();
 
-        CreateMap<J_RouteConfigDto, A_ConsulRouteDto>()
-            // 基础字段映射
-            .ForMember(dest => dest.DownstreamPathTemplate, 
-                opt => opt.MapFrom(src => src.DownstreamPathTemplate))
-            .ForMember(dest => dest.UpstreamPathTemplate, 
-                opt => opt.MapFrom(src => src.UpstreamPathTemplate))
-            .ForMember(dest => dest.ServiceName, 
-                opt => opt.MapFrom(src => src.ServiceName))
-            .ForMember(dest => dest.DownstreamScheme, 
-                opt => opt.MapFrom(src => src.DownstreamScheme))
-            
-            // 复杂类型处理（示例）
-            // .ForMember(dest => dest.UpstreamHttpMethod, 
-            //     opt => opt.MapFrom(src => 
-            //         src.UpstreamHttpMethod?.Select(m => m.ToUpper()).ToList()))
-            
-            // 忽略无需映射的字段
-            .ForMember(dest => dest.ServiceHost, opt => opt.Ignore())
-            .ForMember(dest => dest.ServicePort, opt => opt.Ignore()).ReverseMap();
+        CreateMap<A_ConsulRouteDto, J_RouteConfigDto>()
+            .ForMember(dest => dest.DownstreamHostAndPorts, 
+                opt => opt.MapFrom(src => src.ServiceDiscoveryMode == ServiceDiscoveryModeConst.Static 
+                    ? new List<J_HostAndPortsDto> { new() { Host = src.DownstreamHost, Port = src.DownstreamPort } } 
+                    : null)).ReverseMap();
         
         
         CreateMap<PageResult<A_ConsulRouteDto>, Pager<ConsulRouteVM>>()
