@@ -13,6 +13,7 @@ public class ConsulRouteService : IRouteService
 {
     private readonly IConsulClient _consulClient;
     private readonly IMapper _mapper;
+    private const string RouteCounterKey = "ocelot/routes";
 
     public ConsulRouteService(IMapper mapper, IConsulClient consulClient)
     {
@@ -29,7 +30,7 @@ public class ConsulRouteService : IRouteService
     {
 
         // 1. 从 Consul KV 获取 ocelot/routes 的值
-        var kvResult = await _consulClient.KV.Get("ocelot/routes");
+        var kvResult = await _consulClient.KV.Get(RouteCounterKey);
         
         if (kvResult.Response == null)
             return ServiceResult<PageResult<A_ConsulRouteDto>>.Fail("未找到路由配置");
@@ -44,7 +45,6 @@ public class ConsulRouteService : IRouteService
         var allRoutes = _mapper.Map<List<A_ConsulRouteDto>>(routesData?.Routes ?? new List<A_RouteConfigDto>());
         foreach (var item in allRoutes)
         {
-            item.Id = (allRoutes.IndexOf(item) + 1).ToString();
             item.UpstreamHttpMethodDisplay = string.Join(" | ", item.UpstreamHttpMethod);
             if (item.DownstreamHostAndPorts.Count > 0)
             {
@@ -85,18 +85,23 @@ public class ConsulRouteService : IRouteService
 
     }
     
-     public async Task<ServiceResult<bool>> AddRouteAsync(A_ConsulRouteDto route)
+    public async Task<ServiceResult<bool>> AddRouteAsync(A_ConsulRouteDto route)
     {
         try
         {
-            var kvPair = await _consulClient.KV.Get("ocelot/routes");
+            var kvPair = await _consulClient.KV.Get(RouteCounterKey);
             var config = kvPair.Response == null 
                 ? new A_OcelotRoutesConfigDto() 
-                : JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
+                : JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(
+                    Encoding.UTF8.GetString(kvPair.Response.Value));
 
-            // 检查路由是否已存在
-            if (config.Routes.Any(r => r.UpstreamPathTemplate == route.UpstreamPathTemplate && 
-                                     r.UpstreamHttpMethod.SequenceEqual(route.UpstreamHttpMethod)))
+            // 生成ID
+            route.Id = GetNextRouteId(config.Routes);
+
+            // 检查路由是否已存在（根据上游路径模板和方法）
+            if (config.Routes.Any(r => 
+                    r.UpstreamPathTemplate == route.UpstreamPathTemplate && 
+                    r.UpstreamHttpMethod.SequenceEqual(route.UpstreamHttpMethod)))
             {
                 return ServiceResult<bool>.Fail("路由已存在");
             }
@@ -104,7 +109,7 @@ public class ConsulRouteService : IRouteService
             var newRoute = _mapper.Map<A_RouteConfigDto>(route);
             config.Routes.Add(newRoute);
 
-            var putResult = await SaveRoutesToConsul(config, kvPair.Response.ModifyIndex);
+            var putResult = await SaveRoutesToConsul(config, kvPair.Response?.ModifyIndex ?? 0);
             return putResult.Response 
                 ? ServiceResult<bool>.Success(true, "添加成功") 
                 : ServiceResult<bool>.Fail("添加失败");
@@ -114,18 +119,20 @@ public class ConsulRouteService : IRouteService
             return ServiceResult<bool>.Fail($"添加异常：{ex.Message}");
         }
     }
+    
 
     public async Task<ServiceResult<bool>> UpdateRouteAsync(A_ConsulRouteDto route)
     {
         try
         {
-            var kvPair = await _consulClient.KV.Get("ocelot/routes");
+            var kvPair = await _consulClient.KV.Get(RouteCounterKey);
             if (kvPair.Response == null)
                 return ServiceResult<bool>.Fail("路由配置不存在");
 
             var config = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
             
-            var existingRoute = config.Routes.FirstOrDefault(r => r.UpstreamPathTemplate == route.UpstreamPathTemplate);
+            // 改为用ID查找
+            var existingRoute = config.Routes.FirstOrDefault(r => r.Id == route.Id);
             if (existingRoute == null)
                 return ServiceResult<bool>.Fail("要修改的路由不存在");
 
@@ -142,17 +149,18 @@ public class ConsulRouteService : IRouteService
         }
     }
 
-    public async Task<ServiceResult<bool>> DeleteRouteAsync(string upstreamPathTemplate)
+    public async Task<ServiceResult<bool>> DeleteRouteAsync(int id)
     {
         try
         {
-            var kvPair = await _consulClient.KV.Get("ocelot/routes");
+            var kvPair = await _consulClient.KV.Get(RouteCounterKey);
             if (kvPair.Response == null)
                 return ServiceResult<bool>.Fail("路由配置不存在");
 
-            var config = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
-            
-            var routeToRemove = config.Routes.FirstOrDefault(r => r.UpstreamPathTemplate == upstreamPathTemplate);
+            var config = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(
+                Encoding.UTF8.GetString(kvPair.Response.Value));
+        
+            var routeToRemove = config.Routes.FirstOrDefault(r => r.Id == id);
             if (routeToRemove == null)
                 return ServiceResult<bool>.Fail("要删除的路由不存在");
 
@@ -174,7 +182,7 @@ public class ConsulRouteService : IRouteService
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
         var jsonBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(config, jsonOptions));
         
-        var putRequest = new KVPair("ocelot/routes")
+        var putRequest = new KVPair(RouteCounterKey)
         {
             Value = jsonBytes,
             ModifyIndex = modifyIndex // 使用CAS机制
@@ -182,4 +190,11 @@ public class ConsulRouteService : IRouteService
 
         return await _consulClient.KV.Put(putRequest);
     }
+    
+    private int GetNextRouteId(List<A_RouteConfigDto> existingRoutes)
+    {
+        if (!existingRoutes.Any()) return 1;
+        return existingRoutes.Max(r => r.Id) + 1;
+    }
+
 }

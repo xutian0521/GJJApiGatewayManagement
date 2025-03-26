@@ -5,7 +5,7 @@ public class C_AddRouteDto
         /// <summary>
     /// 路由唯一标识（如无唯一ID可忽略）
     /// </summary>
-    public string? Id { get; set; }
+    public int Id { get; set; }
 
     /// <summary>
     /// 路由名称（通常用上游路径模板标识）

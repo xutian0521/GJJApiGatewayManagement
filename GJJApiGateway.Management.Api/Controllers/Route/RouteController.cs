@@ -53,9 +53,9 @@ public class RouteController : ControllerBase
     }
 
     [HttpGet("DeleteRoute")]
-    public async Task<s_ApiResult<string>> DeleteRoute(string upstreamPathTemplate)
+    public async Task<s_ApiResult<string>> DeleteRoute(int id)
     {
-        var result = await _routeService.DeleteRouteAsync(upstreamPathTemplate);
+        var result = await _routeService.DeleteRouteAsync(id);
         return new s_ApiResult<string>(result.Code, result.Message, "");
     }
 }

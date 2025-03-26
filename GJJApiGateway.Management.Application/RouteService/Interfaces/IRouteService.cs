@@ -16,6 +16,6 @@ public interface IRouteService
 
     Task<ServiceResult<bool>> UpdateRouteAsync(A_ConsulRouteDto route);
 
-    Task<ServiceResult<bool>> DeleteRouteAsync(string upstreamPathTemplate);
+    Task<ServiceResult<bool>> DeleteRouteAsync(int id);
 
 }
