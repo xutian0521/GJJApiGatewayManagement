@@ -39,10 +39,10 @@ public class ConsulRouteService : IRouteService
         var jsonString = Encoding.UTF8.GetString(kvResult.Response.Value);
 
         // 3. 反序列化为动态对象（根据实际路由结构定义DTO）
-        var routesData = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(jsonString);
+        var routesData = JsonSerializer.Deserialize<J_OcelotRoutesConfigDto>(jsonString);
 
         // 4. 转换为业务DTO并应用过滤
-        var allRoutes = _mapper.Map<List<A_ConsulRouteDto>>(routesData?.Routes ?? new List<A_RouteConfigDto>());
+        var allRoutes = _mapper.Map<List<A_ConsulRouteDto>>(routesData?.Routes ?? new List<J_RouteConfigDto>());
         foreach (var item in allRoutes)
         {
             item.UpstreamHttpMethodDisplay = string.Join(" | ", item.UpstreamHttpMethod);
@@ -91,8 +91,8 @@ public class ConsulRouteService : IRouteService
         {
             var kvPair = await _consulClient.KV.Get(RouteCounterKey);
             var config = kvPair.Response == null 
-                ? new A_OcelotRoutesConfigDto() 
-                : JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(
+                ? new J_OcelotRoutesConfigDto() 
+                : JsonSerializer.Deserialize<J_OcelotRoutesConfigDto>(
                     Encoding.UTF8.GetString(kvPair.Response.Value));
 
             // 生成ID
@@ -106,7 +106,19 @@ public class ConsulRouteService : IRouteService
                 return ServiceResult<bool>.Fail("路由已存在");
             }
 
-            var newRoute = _mapper.Map<A_RouteConfigDto>(route);
+            var newRoute = _mapper.Map<J_RouteConfigDto>(route);
+            if (route.ServiceDiscoveryMode == ServiceDiscoveryModeConst.Static)
+            {
+                newRoute.DownstreamHostAndPorts =
+                [
+                    new J_HostAndPortsDto() { Host = route.DownstreamHost, Port = route.DownstreamPort }
+                ];
+                newRoute.ServiceName = null;
+            }
+            else
+            {
+                newRoute.DownstreamHostAndPorts = null;
+            }
             config.Routes.Add(newRoute);
 
             var putResult = await SaveRoutesToConsul(config, kvPair.Response?.ModifyIndex ?? 0);
@@ -129,7 +141,7 @@ public class ConsulRouteService : IRouteService
             if (kvPair.Response == null)
                 return ServiceResult<bool>.Fail("路由配置不存在");
 
-            var config = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
+            var config = JsonSerializer.Deserialize<J_OcelotRoutesConfigDto>(Encoding.UTF8.GetString(kvPair.Response.Value));
             
             // 改为用ID查找
             var existingRoute = config.Routes.FirstOrDefault(r => r.Id == route.Id);
@@ -137,7 +149,20 @@ public class ConsulRouteService : IRouteService
                 return ServiceResult<bool>.Fail("要修改的路由不存在");
 
             _mapper.Map(route, existingRoute);
-
+            
+            if (route.ServiceDiscoveryMode == ServiceDiscoveryModeConst.Static)
+            {
+                existingRoute.DownstreamHostAndPorts =
+                [
+                    new J_HostAndPortsDto() { Host = route.DownstreamHost, Port = route.DownstreamPort }
+                ];
+                existingRoute.ServiceName = null;
+            }
+            else
+            {
+                existingRoute.DownstreamHostAndPorts = null;
+            }
+            
             var putResult = await SaveRoutesToConsul(config, kvPair.Response.ModifyIndex);
             return putResult.Response 
                 ? ServiceResult<bool>.Success(true, "修改成功") 
@@ -157,7 +182,7 @@ public class ConsulRouteService : IRouteService
             if (kvPair.Response == null)
                 return ServiceResult<bool>.Fail("路由配置不存在");
 
-            var config = JsonSerializer.Deserialize<A_OcelotRoutesConfigDto>(
+            var config = JsonSerializer.Deserialize<J_OcelotRoutesConfigDto>(
                 Encoding.UTF8.GetString(kvPair.Response.Value));
         
             var routeToRemove = config.Routes.FirstOrDefault(r => r.Id == id);
@@ -177,7 +202,7 @@ public class ConsulRouteService : IRouteService
         }
     }
 
-    private async Task<WriteResult<bool>> SaveRoutesToConsul(A_OcelotRoutesConfigDto config, ulong modifyIndex)
+    private async Task<WriteResult<bool>> SaveRoutesToConsul(J_OcelotRoutesConfigDto config, ulong modifyIndex)
     {
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
         var jsonBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(config, jsonOptions));
@@ -191,7 +216,7 @@ public class ConsulRouteService : IRouteService
         return await _consulClient.KV.Put(putRequest);
     }
     
-    private int GetNextRouteId(List<A_RouteConfigDto> existingRoutes)
+    private int GetNextRouteId(List<J_RouteConfigDto> existingRoutes)
     {
         if (!existingRoutes.Any()) return 1;
         return existingRoutes.Max(r => r.Id) + 1;

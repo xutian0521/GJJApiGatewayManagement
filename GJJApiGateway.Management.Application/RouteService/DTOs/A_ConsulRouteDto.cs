@@ -46,7 +46,7 @@ public class A_ConsulRouteDto
     /// </summary>
     public string? UpstreamHttpMethodDisplay { get; set; }
     
-    public List<A_HostAndPortsDto> DownstreamHostAndPorts { get; set; }
+    public List<J_HostAndPortsDto> DownstreamHostAndPorts { get; set; }
     /// <summary>
     /// 下游服务地址和端口号
     /// </summary>
