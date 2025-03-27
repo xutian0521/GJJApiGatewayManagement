@@ -48,6 +48,7 @@ public class ConsulService : IConsulService
             s.Instances = health.Response?
                 .Select(h => new A_ServiceInstanceDto
                 {
+                    InstanceId = $"{h.Service.ID}",  // 服务实例的ID
                     // 使用正确的属性路径
                     Node = h.Node?.Name ?? "Unknown",
                     Address = h.Service?.Address ?? "Unknown",
@@ -94,34 +95,31 @@ public class ConsulService : IConsulService
     }
 }
 
-    public async Task<ServiceResult<bool>> EnableServiceAsync(string serviceId)
+    public async Task<ServiceResult<bool>> EnableServiceInstanceAsync(string instanceId)
     {
         try
         {
-            // Consul启用服务逻辑（示例）
-            await _consulClient.Agent.ServiceRegister(new AgentServiceRegistration
-            {
-                ID = serviceId,
-                // 其他注册信息...
-            });
-            return ServiceResult<bool>.Success(true, "服务已启用");
+            // 关闭维护模式（启用实例），reason传空字符串即可
+            var r = await _consulClient.Agent.DisableServiceMaintenance(instanceId);
+            return ServiceResult<bool>.Success(true, "实例已启用");
         }
         catch (Exception ex)
         {
-            return ServiceResult<bool>.Fail($"启用失败：{ex.Message}");
+            return ServiceResult<bool>.Fail($"启用实例失败：{ex.Message}");
         }
     }
 
-    public async Task<ServiceResult<bool>> DisableServiceAsync(string serviceId)
+    public async Task<ServiceResult<bool>> DisableServiceInstanceAsync(string instanceId)
     {
         try
         {
-            await _consulClient.Agent.ServiceDeregister(serviceId);
-            return ServiceResult<bool>.Success(true, "服务已停用");
+            // 启用维护模式（停用实例），reason 必须非空
+            await _consulClient.Agent.EnableServiceMaintenance(instanceId, "手动维护停用");
+            return ServiceResult<bool>.Success(true, "实例已停用");
         }
         catch (Exception ex)
         {
-            return ServiceResult<bool>.Fail($"停用失败：{ex.Message}");
+            return ServiceResult<bool>.Fail($"停用实例失败：{ex.Message}");
         }
     }
 }

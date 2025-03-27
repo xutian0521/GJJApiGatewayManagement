@@ -10,6 +10,6 @@ public interface IConsulService
         string? status,
         int pageIndex,
         int pageSize);
-    Task<ServiceResult<bool>> EnableServiceAsync(string serviceId);
-    Task<ServiceResult<bool>> DisableServiceAsync(string serviceId);
+    Task<ServiceResult<bool>> EnableServiceInstanceAsync(string instanceId);
+    Task<ServiceResult<bool>> DisableServiceInstanceAsync(string instanceId);
 }

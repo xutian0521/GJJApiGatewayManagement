@@ -33,17 +33,17 @@ public class ServiceController : ControllerBase
         return new s_ApiResult<Pager<ConsulServiceVM>>(result.Code, result.Message, pager);
     }
 
-    [HttpPost("EnableService")]
-    public async Task<s_ApiResult<string>> EnableService(string serviceId)
+    [HttpPost("EnableInstance")]
+    public async Task<s_ApiResult<string>> EnableInstance(string instanceId)
     {
-        var result = await _consulService.EnableServiceAsync(serviceId);
+        var result = await _consulService.EnableServiceInstanceAsync(instanceId);
         return new s_ApiResult<string>(result.Code, result.Message, "");
     }
 
-    [HttpPost("DisableService")]
-    public async Task<s_ApiResult<string>> DisableService(string serviceId)
+    [HttpPost("DisableInstance")]
+    public async Task<s_ApiResult<string>> DisableInstance(string instanceId)
     {
-        var result = await _consulService.DisableServiceAsync(serviceId);
+        var result = await _consulService.DisableServiceInstanceAsync(instanceId);
         return new s_ApiResult<string>(result.Code, result.Message, "");
     }
 }
