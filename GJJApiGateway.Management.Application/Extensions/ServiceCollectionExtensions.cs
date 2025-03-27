@@ -4,6 +4,8 @@ using GJJApiGateway.Management.Application.APIAuthService.Interfaces;
 using GJJApiGateway.Management.Application.APIAuthService.Mappings;
 using GJJApiGateway.Management.Application.APIAuthService.Queries;
 using GJJApiGateway.Management.Application.RouteService.Interfaces;
+using GJJApiGateway.Management.Application.ServiceService.Implementations;
+using GJJApiGateway.Management.Application.ServiceService.Interfaces;
 using GJJApiGateway.Management.Infrastructure.Repositories.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using GJJApiGateway.Management.Infrastructure;
@@ -30,6 +32,8 @@ namespace GJJApiGateway.Management.Application.Extensions
             services.AddScoped<IAuthorizationService, AuthorizationService>();
             services.AddScoped<IApiApplicationService, ApiApplicationService>();
             services.AddScoped<IRouteService, ConsulRouteService>();
+            services.AddScoped<IConsulService, ConsulService>();
+            
             services.AddScoped<PasswordSettings, PasswordSettings>();
             services.AddScoped<IAuthQuery, AuthQuery>();
             services.AddScoped<IAuthCommand, AuthCommand>();

@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Controllers\Service\DTOs\" />
     <Folder Include="Controllers\Shared\DTOs\" />
-    <Folder Include="Controllers\Shared\Mappings\" />
   </ItemGroup>
 
 </Project>
