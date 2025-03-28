@@ -287,6 +287,7 @@ public static class SystemServiceExtensions
             Name = serviceName,
             Address = configuration["HostIP"],
             Port = int.Parse(configuration["HostPort"]),
+            Tags = new[] { "描述: 这是网关管理后台API服务", "版本: v1.0" }, // 可以添加中文标签
             Check = new AgentServiceCheck
             {
                 HTTP = $"http://{configuration["HostIP"]}:{configuration["HostPort"]}/health",

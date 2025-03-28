@@ -55,7 +55,8 @@ public class ConsulService : IConsulService
                     Port = h.Service?.Port ?? 0,
                     Status = h.Checks?.Any(c => c.Status == HealthStatus.Critical) ?? false 
                         ? "Unhealthy" 
-                        : "Healthy"
+                        : "Healthy",
+                    Tags = h.Service?.Tags
                 }).ToList() ?? new List<A_ServiceInstanceDto>();
             
             // 设置服务状态
@@ -75,6 +76,14 @@ public class ConsulService : IConsulService
                 .ToList();
         }
 
+        foreach (var item in detailedServices)
+        {
+            if (item.Instances.Count > 0)
+            {
+                item.Tags = item.Instances[0].Tags;
+                item.TagsDisplay = string.Join(" | ", item.Instances[0].Tags);
+            }
+        }
         // 分页处理
         var paged = detailedServices
             .Skip((pageIndex - 1) * pageSize)

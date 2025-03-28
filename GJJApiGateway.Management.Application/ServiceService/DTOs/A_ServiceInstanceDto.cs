@@ -7,4 +7,6 @@ public class A_ServiceInstanceDto
     public string Address { get; set; } = string.Empty;
     public int Port { get; set; }
     public string Status { get; set; } = "Unknown";
+    public string[]? Tags { get; set; }
+    public string TagsDisplay { get; set; }
 }
