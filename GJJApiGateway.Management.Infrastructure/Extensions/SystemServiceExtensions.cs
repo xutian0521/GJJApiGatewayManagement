@@ -52,9 +52,7 @@ public static class SystemServiceExtensions
         _seqHostHTTP = configuration["SeqHostHTTP"] ?? _seqHostHTTP;
         _seqHostLog = configuration["SeqHostLog"] ?? _seqHostLog;
         _hostPort = configuration.GetValue<int?>("HostPort") ?? _hostPort;
-
-        configuration["HostIP"] = _hostIP;
-        configuration["HostPort"] = _hostPort.ToString();
+        
         
         services.AddCorsPolicy(configuration)
                 .AddOpenTelemetryTracing(configuration, serviceName)
@@ -283,14 +281,14 @@ public static class SystemServiceExtensions
 
         var registration = new AgentServiceRegistration
         {
-            ID = $"{serviceName}-{configuration["HostIP"]}:{configuration["HostPort"]}",
+            ID = $"{serviceName}-{_hostIP}:{_hostPort}",
             Name = serviceName,
-            Address = configuration["HostIP"],
-            Port = int.Parse(configuration["HostPort"]),
+            Address = _hostIP,
+            Port = _hostPort,
             Tags = new[] { "描述: 这是网关管理后台API服务", "版本: v1.0" }, // 可以添加中文标签
             Check = new AgentServiceCheck
             {
-                HTTP = $"http://{configuration["HostIP"]}:{configuration["HostPort"]}/health",
+                HTTP = $"http://{_hostIP}:{_hostPort}/health",
                 Interval = TimeSpan.FromSeconds(10),
                 Timeout = TimeSpan.FromSeconds(5),
                 DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(30)
@@ -312,7 +310,7 @@ public static class SystemServiceExtensions
     {
         services.Configure<KestrelServerOptions>(options =>
         {
-            options.Listen(IPAddress.Any, configuration.GetValue<int>("HostPort"));
+            options.Listen(IPAddress.Any, _hostPort);
         });
 
         return services;
