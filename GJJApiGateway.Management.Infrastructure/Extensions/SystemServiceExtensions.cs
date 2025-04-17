@@ -52,7 +52,7 @@ public static class SystemServiceExtensions
         _seqHostHTTP = configuration["SeqHostHTTP"] ?? _seqHostHTTP;
         _seqHostLog = configuration["SeqHostLog"] ?? _seqHostLog;
         _hostPort = configuration.GetValue<int?>("HostPort") ?? _hostPort;
-        
+        _hostIP = configuration["LocalIP"] ?? _hostIP;
         
         services.AddCorsPolicy(configuration)
                 .AddOpenTelemetryTracing(configuration, serviceName)
