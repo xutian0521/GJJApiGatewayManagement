@@ -33,9 +33,10 @@ namespace GJJApiGateway.Management.Common.Utilities;
 /// </summary>
 public static class GuomiCryptoHelper
 {
-    // ---------------------------
-    // 基础：Hex / Base64 工具
-    // ---------------------------
+    // ---------------------------------------------------------------------
+    // 0) 基础工具：Hex / Base64 / 随机字节
+    // ---------------------------------------------------------------------
+
     public static string ToHex(byte[] data) =>
         BitConverter.ToString(data).Replace("-", "").ToLowerInvariant();
 
@@ -59,9 +60,10 @@ public static class GuomiCryptoHelper
         return b;
     }
 
-    // ---------------------------
-    // SM3 摘要
-    // ---------------------------
+    // ---------------------------------------------------------------------
+    // 1) SM3 摘要
+    // ---------------------------------------------------------------------
+
     public static byte[] SM3Hash(byte[] data)
     {
         var d = new SM3Digest();
@@ -77,12 +79,12 @@ public static class GuomiCryptoHelper
         return ToHex(SM3Hash(encoding.GetBytes(text)));
     }
 
-    // ---------------------------
-    // SM4 对称加密
-    // ---------------------------
+    // ---------------------------------------------------------------------
+    // 2) SM4 对称加解密
+    // ---------------------------------------------------------------------
 
     /// <summary>
-    /// SM4-CBC 加密（默认 PKCS7 填充）
+    /// 2.1 SM4-CBC 加密（默认 PKCS7 填充）
     /// key: 16字节；iv: 16字节
     /// 返回密文字节数组
     /// </summary>
@@ -104,7 +106,7 @@ public static class GuomiCryptoHelper
     }
 
     /// <summary>
-    /// SM4-CBC 解密（默认 PKCS7 填充）
+    /// 2.2 SM4-CBC 解密（默认 PKCS7 填充）
     /// </summary>
     public static byte[] SM4DecryptCbc(byte[] cipherBytes, byte[] key16, byte[] iv16, bool pkcs7 = true)
     {
@@ -124,7 +126,7 @@ public static class GuomiCryptoHelper
     }
 
     /// <summary>
-    /// SM4-GCM 加密（推荐：iv 12字节，macBits 128）
+    /// 2.3 SM4-GCM 加密（推荐：iv 12字节，macBits 128）
     /// 返回：cipher || tag（合并后的字节数组）
     /// </summary>
     public static byte[] SM4EncryptGcm(byte[] plain, byte[] key16, byte[] iv12, byte[]? aad = null, int macBits = 128)
@@ -142,7 +144,7 @@ public static class GuomiCryptoHelper
     }
 
     /// <summary>
-    /// SM4-GCM 解密；输入必须是 cipher || tag 的合并字节数组
+    /// 2.4 SM4-GCM 解密；输入必须是 cipher || tag 的合并字节数组
     /// 解密失败会抛出 InvalidCipherTextException（MAC 校验失败）
     /// </summary>
     public static byte[] SM4DecryptGcm(byte[] cipherAndTag, byte[] key16, byte[] iv12, byte[]? aad = null, int macBits = 128)
@@ -159,12 +161,12 @@ public static class GuomiCryptoHelper
         return outBuf.Take(len).ToArray();
     }
 
-    // ---------------------------
-    // SM2 公钥密码：密钥、加解密、签名
-    // ---------------------------
+    // ---------------------------------------------------------------------
+    // 3) SM2 公钥密码：密钥、加解密、签名/验签
+    // ---------------------------------------------------------------------
 
     /// <summary>
-    /// 生成 SM2 密钥对（PEM：PKCS#8 私钥，SubjectPublicKeyInfo 公钥）
+    /// 3.1 生成 SM2 密钥对（PEM：PKCS#8 私钥，SubjectPublicKeyInfo 公钥）
     /// </summary>
     public static (string PrivateKeyPem, string PublicKeyPem) SM2GenerateKeyPairPem()
     {
@@ -199,7 +201,7 @@ public static class GuomiCryptoHelper
     }
 
     /// <summary>
-    /// SM2 加密（默认 C1C3C2 格式）
+    /// 3.2 SM2 加密（默认 C1C3C2 格式）
     /// </summary>
     public static byte[] SM2Encrypt(byte[] plain, string publicKeyPem, bool c1c3c2 = true)
     {
@@ -212,7 +214,7 @@ public static class GuomiCryptoHelper
     }
 
     /// <summary>
-    /// SM2 解密（默认 C1C3C2 格式）
+    /// 3.3 SM2 解密（默认 C1C3C2 格式）
     /// </summary>
     public static byte[] SM2Decrypt(byte[] cipher, string privateKeyPem, bool c1c3c2 = true)
     {
@@ -225,7 +227,7 @@ public static class GuomiCryptoHelper
     }
 
     /// <summary>
-    /// SM2 签名（SM3 摘要，含默认 userId="1234567812345678"）
+    /// 3.4 SM2 签名（SM3 摘要，含默认 userId="1234567812345678"）
     /// 返回 DER 编码 (r,s) 签名
     /// </summary>
     public static byte[] SM2Sign(byte[] data, string privateKeyPem, string userId = "1234567812345678")
@@ -241,7 +243,7 @@ public static class GuomiCryptoHelper
     }
 
     /// <summary>
-    /// SM2 验签（SM3 摘要，userId 需与签名时一致）
+    /// 3.5 SM2 验签（SM3 摘要，userId 需与签名时一致）
     /// 传入 DER 编码 (r,s)
     /// </summary>
     public static bool SM2Verify(byte[] data, byte[] signatureDer, string publicKeyPem, string userId = "1234567812345678")
@@ -255,9 +257,10 @@ public static class GuomiCryptoHelper
         return signer.VerifySignature(signatureDer);
     }
 
-    // ---------------------------
-    // PEM 读写（内部）
-    // ---------------------------
+    // ---------------------------------------------------------------------
+    // 4) 内部：PEM 读写
+    // ---------------------------------------------------------------------
+
     private static AsymmetricKeyParameter ReadPrivateKey(string pem)
     {
         using var sr = new StringReader(pem);
@@ -280,5 +283,4 @@ public static class GuomiCryptoHelper
             _ => throw new ArgumentException("Unsupported public key PEM.")
         };
     }
-    
 }
